@@ -1,0 +1,27 @@
+{
+  "name": "hachuuu",
+  "version": "1.0.0",
+  "description": "Pokemon sorting system",
+  "main": "index.js",
+  "repository": "https://github.com/fabio1988/rdmsort",
+  "author": "Tom Hatzer <me@tomhatzer.at>",
+  "license": "MIT",
+  "scripts": {
+    "serve": "cross-env mix watch --hot",
+    "dev": "cross-env mix",
+    "prod": "cross-env mix --production",
+    "start": "cross-env mix watch"
+  },
+  "dependencies": {
+    "autoprefixer": "^9.8.6",
+    "tailwindcss": "^1.7.2"
+  },
+  "devDependencies": {
+    "alpinejs": "^2.8.1",
+    "cross-env": "^7.0.3",
+    "laravel-mix": "^6.0.13",
+    "postcss": "^8.1",
+    "postcss-custom-properties": "^11.0.0",
+    "postcss-preset-env": "^6.7.0"
+  }
+}
