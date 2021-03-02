@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+    <title>hachuuu</title>
+    <link href="css/app.css" rel="stylesheet">
+    <script src="js/app.js" type="text/javascript" defer></script>
+</head>
+<body class="bg-primary min-h-screen w-full font-roboto text-gray-800">
+    <div class="w-full lg:max-w-6xl lg:m-auto relative" x-data="pokemonData()" x-init="initPokemon()">
+        <div class="absolute right-0 top-0 flex flex-row justify-between items-center divide-x divide-green-700 text-sm mt-2">
+            <a href="#" @click.prevent="changeLanguage('de')" class="py-1 px-2" :class="{ 'text-green-600 font-bold': selectedLanguage === 'de', 'text-green-800': selectedLanguage !== 'de' }">de</a>
+            <a href="#" @click.prevent="changeLanguage('en')" class="py-1 px-2" :class="{ 'text-green-600 font-bold': selectedLanguage === 'en', 'text-green-800': selectedLanguage !== 'en' }">en</a>
+        </div>
+        <header class="w-full text-center py-8">
+            <img src="img/hachuuu.png" alt="hachuuu" class="inline-block w-32" />
+            <div class="text-3xl text-green-700 font-bold pt-2">hachuuu!</div>
+        </header>
+        <aside class="flex flex-row w-full space-x-6">
+            <button @click="openImportModal()" class="w-1/2 bg-green-600 text-green-200 rounded py-1 text-sm hover:bg-green-200 hover:text-green-600" x-text="translations.import">Import pokemon</button>
+            <button @click="exportPokemon()" class="w-1/2 bg-green-600 text-green-200 rounded py-1 text-sm hover:bg-green-200 hover:text-green-600" x-text="translations.export">Export pokemon</button>
+        </aside>
+        <main class="py-12 flex flex-row space-x-8">
+            <div class="w-1/3">
+                <div class="flex flex-row justify-between items-center pb-2">
+                    <div class="flex flex-row justify-start items-center">
+                        <input type="checkbox" id="showImages" x-model="showImages" value="1" />
+                        <label for="showImages" class="pl-2 text-xs" x-text="translations.show_images">Show images</label>
+                    </div>
+                    <div class="">
+                        <select x-model="selectedGeneration" class="max-w-lg block focus:ring-green-500 focus:border-green-500 sm:text-sm border-green-300 rounded">
+                            <option value="" x-text="translations.select_generation">Select generation</option>
+                            <template x-for="gen in availableGenerations" :key="gen">
+                                <option :value="gen" x-text="'Generation ' + gen"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+                <div id="itemContainer" class="overflow-y-scroll" style="height: calc( 100vh - 400px )"></div>
+            </div>
+            <div class="w-2/3">
+                <div class="pb-2 text-xs" x-text="translations.selected">Selected:</div>
+                <div class="">
+                    <ul id="selectedItems" class="divide-y divide-green-500"></ul>
+                </div>
+            </div>
+        </main>
+        <footer class="text-xs text-green-700 font-light text-center">
+            Pikachu image borrowed from <a href="https://dribbble.com/shots/14147543-Pikachu" class="font-bold">Carlos Puentes | cpuentesdesign</a>
+        </footer>
+
+        <div class="overflow-auto" style="background-color: rgba(0,0,0,0.5)" x-show="showModal" :class="{ 'absolute inset-0 z-10 flex items-center justify-center': showModal }">
+            <div class="bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg py-4 text-left px-6" x-show="showModal" @click.away="showModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="ease-in duration-300" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90">
+                <div class="flex justify-between items-center pb-3">
+                    <p class="text-2xl font-bold">Import Pokemon</p>
+                    <div class="cursor-pointer z-50" @click="showModal = false">
+                        <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                            <path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <textarea x-model="importIds" class="w-full h-64 border border-gray-200 text-sm"></textarea>
+
+                <div class="flex justify-end pt-2">
+                    <button class="px-3 bg-green-600 text-green-200 rounded py-1 text-sm hover:bg-green-200 hover:text-green-600 mr-2" @click="importPokemon()">Import</button>
+                    <button class="modal-close px-3 py-1 rounded text-gray-500 hover:text-gray-700 text-sm" @click="showModal = false">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
