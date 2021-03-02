@@ -4981,6 +4981,11 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+performance-now@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
+  integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
+
 picomatch@^2.0.4, picomatch@^2.0.5, picomatch@^2.2.1:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.2.2.tgz#21f333e9b6b8eaff02468f5146ea406d345f4dad"
@@ -5788,6 +5793,13 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.2.tgz#abf64491e6ecf0f38a6502403d4cda04f372dfd3"
   integrity sha512-dB15eXv3p2jDlbOiNLyMabYg1/sXvppd8DP2J3EOCQ0AkuSXCW2tP7mnVouVLJKgUMY6yP0kcQDVpLCN13h4Xg==
 
+raf@^3.4.1:
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/raf/-/raf-3.4.1.tgz#0742e99a4a6552f445d73e3ee0328af0ff1ede39"
+  integrity sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==
+  dependencies:
+    performance-now "^2.1.0"
+
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz#df6f84372f0270dc65cdf6291349ab7a473d4f2a"
@@ -5959,6 +5971,13 @@ replace-ext@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.1.tgz#2d6d996d04a15855d967443631dd5f77825b016a"
   integrity sha512-yD5BHCe7quCgBph4rMQ+0KkIRKwWCrHDOX1p1Gp6HwjPM5kVoCdKGNhN7ydqqsX6lJEnQDKZ/tFMiEdQ1dvPEw==
+
+request-animation-frame-timeout@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/request-animation-frame-timeout/-/request-animation-frame-timeout-1.0.0.tgz#0622c11901abd0e5b0ce346c5aaafc1ef28a3a3d"
+  integrity sha512-jN+M/AWPCwtWIijtnhLvzolo9JASyK719b+m4+5IrSy5GJ4tApkQr8LxOUu12cidA1HOaDjbCKNOFhFY9eF1Gg==
+  dependencies:
+    raf "^3.4.1"
 
 require-directory@^2.1.1:
   version "2.1.1"
@@ -6885,6 +6904,13 @@ vendors@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/vendors/-/vendors-1.0.4.tgz#e2b800a53e7a29b93506c3cf41100d16c4c4ad8e"
   integrity sha512-/juG65kTL4Cy2su4P8HjtkTxk6VmJDiOPBufWniqQ6wknac6jNiXS9vU+hO3wgusiyqWlzTbVHi0dyJqRONg3w==
+
+virtual-scroller@^1.7.5:
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/virtual-scroller/-/virtual-scroller-1.7.5.tgz#aaca97c636bc39c0e591a5537b953f35e4969729"
+  integrity sha512-8TsTb9mrYaz13Dh+IqjgBKfeZBuM/Y35Mk15x38hYXcRf9IgeRla9ecBedszvy89K0NKHBy33IivioghvfGBqQ==
+  dependencies:
+    request-animation-frame-timeout "^1.0.0"
 
 vm-browserify@^1.0.1:
   version "1.1.2"

@@ -1969,6 +1969,12 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var alpinejs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! alpinejs */ "./node_modules/alpinejs/dist/alpine.js");
 /* harmony import */ var alpinejs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(alpinejs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var virtual_scroller_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! virtual-scroller/dom */ "./node_modules/virtual-scroller/modules/DOM/VirtualScroller.js");
+/* harmony import */ var virtual_scroller_source_DOM_ScrollableContainer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! virtual-scroller/source/DOM/ScrollableContainer */ "./node_modules/virtual-scroller/source/DOM/ScrollableContainer.js");
+/* harmony import */ var virtual_scroller_source_DOM_Screen__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! virtual-scroller/source/DOM/Screen */ "./node_modules/virtual-scroller/source/DOM/Screen.js");
+
+
+
 
 
 var domReady = function domReady(callBack) {
@@ -1980,158 +1986,15 @@ var domReady = function domReady(callBack) {
 };
 
 window.language = 'de';
-/**
- * Creates a virtually-rendered scrollable list.
- * @param {object} config
- * @constructor
- */
-
-window.VirtualList = function (config) {
-  var width = config && config.w + 'px' || '100%';
-  var height = config && config.h + 'px' || '100%';
-  var itemHeight = this.itemHeight = config.itemHeight;
-  this.items = config.items;
-  this.generatorFn = config.generatorFn;
-  this.totalRows = config.totalRows || config.items && config.items.length;
-  var scroller = VirtualList.createScroller(itemHeight * this.totalRows);
-  this.container = VirtualList.createContainer(width, height);
-  this.container.appendChild(scroller);
-  var screenItemsLen = Math.ceil(config.h / itemHeight); // Cache 4 times the number of items that fit in the container viewport
-
-  this.cachedItemsLen = screenItemsLen * 3;
-
-  this._renderChunk(this.container, 0);
-
-  var self = this;
-  var lastRepaintY;
-  var maxBuffer = screenItemsLen * itemHeight;
-  var lastScrolled = 0; // As soon as scrolling has stopped, this interval asynchronously removes all
-  // the nodes that are not used anymore
-
-  this.rmNodeInterval = setInterval(function () {
-    if (Date.now() - lastScrolled > 100) {
-      var badNodes = document.querySelectorAll('[data-rm="1"]');
-
-      for (var i = 0, l = badNodes.length; i < l; i++) {
-        try {
-          self.container.removeChild(badNodes[i]);
-        } catch (e) {}
-      }
-    }
-  }, 300);
-
-  function onScroll(e) {
-    e = e || window.event; //ie
-
-    var te = e.target || e.srcElement; //ie
-
-    var scrollTop = te.scrollTop; // Triggers reflow
-
-    if (!lastRepaintY || Math.abs(scrollTop - lastRepaintY) > maxBuffer) {
-      var first = parseInt(scrollTop / itemHeight) - screenItemsLen;
-
-      self._renderChunk(self.container, first < 0 ? 0 : first);
-
-      lastRepaintY = scrollTop;
-    }
-
-    lastScrolled = Date.now();
-    e.preventDefault && e.preventDefault();
-  }
-
-  if (this.container.attachEvent) this.container.attachEvent('onscroll', onScroll);else this.container.addEventListener('scroll', onScroll);
-};
-
-window.VirtualList.prototype.createRow = function (i) {
-  var item;
-  if (this.generatorFn) item = this.generatorFn(i);else if (this.items) {
-    if (typeof this.items[i] === 'string') {
-      var itemText = document.createTextNode(this.items[i]);
-      item = document.createElement('div');
-      item.style.height = this.itemHeight + 'px';
-      item.appendChild(itemText);
-    } else {
-      item = this.items[i];
-    }
-  }
-  item.classname = 'vrow';
-  item.style.position = 'absolute';
-  item.style.top = i * this.itemHeight + 'px';
-  return item;
-};
-/**
- * Renders a particular, consecutive chunk of the total rows in the list. To
- * keep acceleration while scrolling, we mark the nodes that are candidate for
- * deletion instead of deleting them right away, which would suddenly stop the
- * acceleration. We delete them once scrolling has finished.
- *
- * @param {Node} node Parent node where we want to append the children chunk.
- * @param {Number} from Starting position, i.e. first children index.
- * @return {void}
- */
-
-
-window.VirtualList.prototype._renderChunk = function (node, from) {
-  var finalItem = from + this.cachedItemsLen;
-  if (finalItem > this.totalRows) finalItem = this.totalRows; // Append all the new rows in a document fragment that we will later append to
-  // the parent node
-
-  var fragment = document.createDocumentFragment();
-
-  for (var i = from; i < finalItem; i++) {
-    fragment.appendChild(this.createRow(i));
-  } // Hide and mark obsolete nodes for deletion.
-
-
-  for (var j = 1, l = node.childNodes.length; j < l; j++) {
-    node.childNodes[j].style.display = 'none';
-    node.childNodes[j].setAttribute('data-rm', '1');
-  }
-
-  node.appendChild(fragment);
-};
-
-window.VirtualList.createContainer = function (w, h) {
-  var c = document.createElement('div');
-  c.style.width = w;
-  c.style.height = h;
-  c.style.overflow = 'auto';
-  c.style.position = 'relative';
-  c.style.padding = 0;
-  c.style.border = '1px solid black';
-  return c;
-};
-
-window.VirtualList.createScroller = function (h) {
-  var scroller = document.createElement('div');
-  scroller.style.opacity = 0;
-  scroller.style.position = 'absolute';
-  scroller.style.top = 0;
-  scroller.style.left = 0;
-  scroller.style.width = '1px';
-  scroller.style.height = h + 'px';
-  return scroller;
-};
 
 window.pokemonData = function () {
   return {
     pokemon: [],
-    pokemonList: null,
-    showImages: false,
+    showImages: true,
     initPokemon: function initPokemon() {
       var _this = this;
 
-      document.getElementById("container") && document.getElementById("container").remove();
-      var containerEl = document.createElement('div');
-      containerEl.id = 'container';
-      document.getElementById('itemContainer').appendChild(containerEl);
       this.$watch('showImages', function (value) {
-        document.getElementById("container").remove();
-        var containerEl = document.createElement('div');
-        containerEl.id = 'container';
-        document.getElementById('itemContainer').appendChild(containerEl);
-        _this.pokemonList = null;
-
         _this.buildList();
       });
       fetch('resources/' + language + '.json').then(function (response) {
@@ -2150,31 +2013,50 @@ window.pokemonData = function () {
         console.log('Failed to fetch pokemons...', error);
       });
     },
+    renderItem: function renderItem(item) {
+      // Item element.
+      var root = document.createElement('div');
+      root.setAttribute('class', 'flex flex-row justify-start items-center');
+
+      if (this.showImages) {
+        // Item image.
+        var img = document.createElement('img');
+        img.setAttribute('src', "/img/".concat(item.id, ".png"));
+        img.setAttribute('alt', item.name);
+        img.setAttribute('class', 'h-16 w-16 object-fit');
+        root.appendChild(img);
+      } // Item name.
+
+
+      var itemName = document.createElement('span');
+      itemName.setAttribute('class', 'text-sm');
+      itemName.textContent = item.name;
+      root.appendChild(itemName); // Return message element.
+
+      return root;
+    },
     buildList: function buildList() {
-      var _this2 = this;
-
-      this.pokemonList = new VirtualList({
-        w: 300,
-        h: 300,
-        items: this.pokemon,
-        itemHeight: 80,
-        totalRows: this.pokemon.length,
-        generatorFn: function generatorFn(row) {
-          var animal = _this2.pokemon[row];
-          var el = document.createElement("div");
-          var html = '';
-
-          if (_this2.showImages) {
-            html += "<img src=\"img/".concat(animal.id, ".png\" alt=\"").concat(animal.name, "\" class=\"h-16 w-auto\" />");
+      document.getElementById("container") && document.getElementById("container").remove();
+      this.buildContainer();
+      var scrollableContainer = document.getElementById('itemContainer');
+      var virtualScroller = new virtual_scroller_dom__WEBPACK_IMPORTED_MODULE_1__.default(document.getElementById('container'), this.pokemon, this.renderItem.bind(this), {
+        scrollableContainer: scrollableContainer,
+        renderingEngine: {
+          name: 'Non-DOM Rendering Engine',
+          createScreen: function createScreen() {
+            return new virtual_scroller_source_DOM_Screen__WEBPACK_IMPORTED_MODULE_2__.default();
+          },
+          createScrollableContainer: function createScrollableContainer(scrollableContainer) {
+            return new virtual_scroller_source_DOM_ScrollableContainer__WEBPACK_IMPORTED_MODULE_3__.default(scrollableContainer);
           }
-
-          html += "<span>".concat(animal.name, "</span>");
-          el.innerHTML = html;
-          el.className = 'flex flex-row justify-start items-center';
-          return el;
         }
       });
-      document.getElementById("container").appendChild(this.pokemonList.container);
+    },
+    buildContainer: function buildContainer() {
+      var containerEl = document.createElement('div');
+      containerEl.setAttribute('id', 'container');
+      containerEl.setAttribute('class', '');
+      document.getElementById('itemContainer').appendChild(containerEl);
     }
   };
 };
@@ -2191,6 +2073,4318 @@ window.pokemonData = function () {
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
+
+/***/ }),
+
+/***/ "./node_modules/performance-now/lib/performance-now.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/performance-now/lib/performance-now.js ***!
+  \*************************************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var process = __webpack_require__(/*! process/browser */ "./node_modules/process/browser.js");
+// Generated by CoffeeScript 1.12.2
+(function() {
+  var getNanoSeconds, hrtime, loadTime, moduleLoadTime, nodeLoadTime, upTime;
+
+  if ((typeof performance !== "undefined" && performance !== null) && performance.now) {
+    module.exports = function() {
+      return performance.now();
+    };
+  } else if ((typeof process !== "undefined" && process !== null) && process.hrtime) {
+    module.exports = function() {
+      return (getNanoSeconds() - nodeLoadTime) / 1e6;
+    };
+    hrtime = process.hrtime;
+    getNanoSeconds = function() {
+      var hr;
+      hr = hrtime();
+      return hr[0] * 1e9 + hr[1];
+    };
+    moduleLoadTime = getNanoSeconds();
+    upTime = process.uptime() * 1e9;
+    nodeLoadTime = moduleLoadTime - upTime;
+  } else if (Date.now) {
+    module.exports = function() {
+      return Date.now() - loadTime;
+    };
+    loadTime = Date.now();
+  } else {
+    module.exports = function() {
+      return new Date().getTime() - loadTime;
+    };
+    loadTime = new Date().getTime();
+  }
+
+}).call(this);
+
+//# sourceMappingURL=performance-now.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/process/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "./node_modules/raf/index.js":
+/*!***********************************!*\
+  !*** ./node_modules/raf/index.js ***!
+  \***********************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var now = __webpack_require__(/*! performance-now */ "./node_modules/performance-now/lib/performance-now.js")
+  , root = typeof window === 'undefined' ? __webpack_require__.g : window
+  , vendors = ['moz', 'webkit']
+  , suffix = 'AnimationFrame'
+  , raf = root['request' + suffix]
+  , caf = root['cancel' + suffix] || root['cancelRequest' + suffix]
+
+for(var i = 0; !raf && i < vendors.length; i++) {
+  raf = root[vendors[i] + 'Request' + suffix]
+  caf = root[vendors[i] + 'Cancel' + suffix]
+      || root[vendors[i] + 'CancelRequest' + suffix]
+}
+
+// Some versions of FF have rAF but not cAF
+if(!raf || !caf) {
+  var last = 0
+    , id = 0
+    , queue = []
+    , frameDuration = 1000 / 60
+
+  raf = function(callback) {
+    if(queue.length === 0) {
+      var _now = now()
+        , next = Math.max(0, frameDuration - (_now - last))
+      last = next + _now
+      setTimeout(function() {
+        var cp = queue.slice(0)
+        // Clear queue here to prevent
+        // callbacks from appending listeners
+        // to the current frame's queue
+        queue.length = 0
+        for(var i = 0; i < cp.length; i++) {
+          if(!cp[i].cancelled) {
+            try{
+              cp[i].callback(last)
+            } catch(e) {
+              setTimeout(function() { throw e }, 0)
+            }
+          }
+        }
+      }, Math.round(next))
+    }
+    queue.push({
+      handle: ++id,
+      callback: callback,
+      cancelled: false
+    })
+    return id
+  }
+
+  caf = function(handle) {
+    for(var i = 0; i < queue.length; i++) {
+      if(queue[i].handle === handle) {
+        queue[i].cancelled = true
+      }
+    }
+  }
+}
+
+module.exports = function(fn) {
+  // Wrap in a new function to prevent
+  // `cancel` potentially being assigned
+  // to the native rAF function
+  return raf.call(root, fn)
+}
+module.exports.cancel = function() {
+  caf.apply(root, arguments)
+}
+module.exports.polyfill = function(object) {
+  if (!object) {
+    object = root;
+  }
+  object.requestAnimationFrame = raf
+  object.cancelAnimationFrame = caf
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/request-animation-frame-timeout/modules/index.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/request-animation-frame-timeout/modules/index.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "setTimeout": () => (/* binding */ setTimeout),
+/* harmony export */   "clearTimeout": () => (/* binding */ clearTimeout)
+/* harmony export */ });
+/* harmony import */ var raf__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! raf */ "./node_modules/raf/index.js");
+/* harmony import */ var raf__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(raf__WEBPACK_IMPORTED_MODULE_0__);
+
+var cancelAnimationFrame = (raf__WEBPACK_IMPORTED_MODULE_0___default().cancel);
+function setTimeout(callback, delay) {
+  var startedAt = Date.now();
+  var animationFrame = raf__WEBPACK_IMPORTED_MODULE_0___default()(tick);
+
+  function tick() {
+    if (Date.now() - startedAt >= delay) {
+      callback();
+    } else {
+      animationFrame = raf__WEBPACK_IMPORTED_MODULE_0___default()(tick);
+    }
+  }
+
+  return {
+    clear: function clear() {
+      return cancelAnimationFrame(animationFrame);
+    }
+  };
+}
+function clearTimeout(timeout) {
+  if (timeout) {
+    timeout.clear();
+  }
+}
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/DOM/RenderingEngine.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/DOM/RenderingEngine.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _Screen__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Screen */ "./node_modules/virtual-scroller/modules/DOM/Screen.js");
+/* harmony import */ var _ScrollableContainer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ScrollableContainer */ "./node_modules/virtual-scroller/modules/DOM/ScrollableContainer.js");
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  name: 'DOM',
+  createScreen: function createScreen() {
+    return new _Screen__WEBPACK_IMPORTED_MODULE_0__.default();
+  },
+  // Create `scrollableContainer`.
+  // On client side, `scrollableContainer` is always created.
+  // On server side, `scrollableContainer` is not created (and not used).
+  createScrollableContainer: function createScrollableContainer(scrollableContainer) {
+    if (scrollableContainer) {
+      return new _ScrollableContainer__WEBPACK_IMPORTED_MODULE_1__.default(scrollableContainer);
+    } else if (typeof window !== 'undefined') {
+      return new _ScrollableContainer__WEBPACK_IMPORTED_MODULE_1__.ScrollableWindowContainer();
+    }
+  }
+});
+//# sourceMappingURL=RenderingEngine.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/DOM/Screen.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/DOM/Screen.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Screen)
+/* harmony export */ });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var Screen =
+/*#__PURE__*/
+function () {
+  function Screen() {
+    _classCallCheck(this, Screen);
+  }
+
+  _createClass(Screen, [{
+    key: "getChildElementTopOffset",
+
+    /**
+     * Returns a child element's "top offset", relative to the `parentElement`'s top edge.
+     * @param  {Element} parentElement
+     * @param  {number} childElementIndex
+     * @return {number}
+     */
+    value: function getChildElementTopOffset(parentElement, childElementIndex) {
+      return parentElement.childNodes[childElementIndex].getBoundingClientRect().top;
+    }
+    /**
+     * Returns a child element's height.
+     * @param  {Element} parentElement
+     * @param  {number} childElementIndex
+     * @return {number}
+     */
+
+  }, {
+    key: "getChildElementHeight",
+    value: function getChildElementHeight(parentElement, childElementIndex) {
+      return this.getElementHeight(parentElement.childNodes[childElementIndex]);
+    }
+    /**
+     * Returns the count of child elements of an element.
+     * @param  {Element} parentElement
+     * @return {number}
+     */
+
+  }, {
+    key: "getChildElementsCount",
+    value: function getChildElementsCount(parentElement) {
+      return parentElement.childNodes.length;
+    }
+    /**
+     * Removes all child elements of an element.
+     * @param  {Element} element
+     */
+
+  }, {
+    key: "clearElement",
+    value: function clearElement(element) {
+      while (element.firstChild) {
+        element.removeChild(element.firstChild);
+      }
+    }
+    /**
+     * Returns an element's height.
+     * @param  {Element} element
+     * @return {number}
+     */
+
+  }, {
+    key: "getElementHeight",
+    value: function getElementHeight(element) {
+      // `offsetHeight` is not precise enough (doesn't return fractional pixels).
+      // return element.offsetHeight
+      return element.getBoundingClientRect().height;
+    }
+  }]);
+
+  return Screen;
+}();
+
+
+//# sourceMappingURL=Screen.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/DOM/ScrollableContainer.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/DOM/ScrollableContainer.js ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ScrollableContainer),
+/* harmony export */   "ScrollableWindowContainer": () => (/* binding */ ScrollableWindowContainer)
+/* harmony export */ });
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var ScrollableContainer =
+/*#__PURE__*/
+function () {
+  /**
+   * Constructs a new "scrollable container" from an element.
+   * @param {Element} scrollableContainer
+   */
+  function ScrollableContainer(element) {
+    _classCallCheck(this, ScrollableContainer);
+
+    this.element = element;
+  }
+  /**
+   * Returns the current scroll position.
+   * @return {number}
+   */
+
+
+  _createClass(ScrollableContainer, [{
+    key: "getScrollY",
+    value: function getScrollY() {
+      return this.element.scrollTop;
+    }
+    /**
+     * Scrolls to a specific position.
+     * @param {number} scrollY
+     */
+
+  }, {
+    key: "scrollToY",
+    value: function scrollToY(scrollY) {
+      this.element.scrollTo(0, scrollY);
+    }
+    /**
+     * Returns "scrollable container" width,
+     * i.e. the available width for its content.
+     * @return {number}
+     */
+
+  }, {
+    key: "getWidth",
+    value: function getWidth() {
+      return this.element.offsetWidth;
+    }
+    /**
+     * Returns the height of the "scrollable container" itself.
+     * Not to be confused with the height of "scrollable container"'s content.
+     * @return {number}
+     */
+
+  }, {
+    key: "getHeight",
+    value: function getHeight() {
+      // if (!this.element && !precise) {
+      // 	return getScreenHeight()
+      // }
+      return this.element.offsetHeight;
+    }
+    /**
+     * Returns the height of the content in a scrollable container.
+     * For example, a scrollable container can have a height of 500px,
+     * but the content in it could have a height of 5000px,
+     * in which case a vertical scrollbar is rendered, and only
+     * one-tenth of all the items are shown at any given moment.
+     * This function is currently only used when using the
+     * `preserveScrollPositionOfTheBottomOfTheListOnMount` feature.
+     * @return {number}
+     */
+
+  }, {
+    key: "getContentHeight",
+    value: function getContentHeight() {
+      return this.element.scrollHeight;
+    }
+    /**
+     * Returns a "top offset" of an element
+     * relative to the "scrollable container"'s top edge.
+     * @param {Element} element
+     * @return {number}
+     */
+
+  }, {
+    key: "getTopOffset",
+    value: function getTopOffset(element) {
+      var scrollableContainerTop = this.element.getBoundingClientRect().top;
+      var scrollableContainerBorderTopWidth = this.element.clientTop;
+      var top = element.getBoundingClientRect().top;
+      return top - scrollableContainerTop + this.getScrollY() - scrollableContainerBorderTopWidth;
+    } // isVisible() {
+    // 	const { top, bottom } = this.element.getBoundingClientRect()
+    // 	return bottom > 0 && top < getScreenHeight()
+    // }
+
+    /**
+     * Adds a "scroll" event listener to the "scrollable container".
+     * @param {onScroll} Should be called whenever the scroll position inside the "scrollable container" (potentially) changes.
+     * @return {function} Returns a function that stops listening.
+     */
+
+  }, {
+    key: "addScrollListener",
+    value: function addScrollListener(onScroll) {
+      var _this = this;
+
+      this.element.addEventListener('scroll', onScroll);
+      return function () {
+        return _this.element.removeEventListener('scroll', onScroll);
+      };
+    }
+    /**
+     * Adds a "resize" event listener to the "scrollable container".
+     * @param {onResize} Should be called whenever the "scrollable container"'s width or height (potentially) changes.
+     * @param  {Element} options.container — The result of the `getContainerElement()` function that was passed in `VirtualScroller` constructor. For example, DOM renderer uses it to filter-out unrelated "resize" events.
+     * @return {function} Returns a function that stops listening.
+     */
+
+  }, {
+    key: "onResize",
+    value: function onResize(_onResize, _ref) {
+      var _this2 = this;
+
+      var container = _ref.container;
+      // Could somehow track DOM Element size.
+      // For now, `scrollableContainer` is supposed to have constant width and height.
+      // (unless window is resized).
+      // https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
+      // https://web.dev/resize-observer/
+      var unobserve;
+
+      if (typeof ResizeObserver !== 'undefined') {
+        var resizeObserver = new ResizeObserver(function (entries) {
+          // "one entry per observed element".
+          // https://web.dev/resize-observer/
+          // `entry.target === this.element`.
+          var entry = entries[0]; // // If `entry.contentBoxSize` property is supported by the web browser.
+          // if (entry.contentBoxSize) {
+          // 	// https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserverEntry/contentBoxSize
+          // 	const width = entry.contentBoxSize.inlineSize
+          // 	const height = entry.contentBoxSize.blockSize
+          // }
+
+          _onResize();
+        });
+        resizeObserver.observe(this.element);
+
+        unobserve = function unobserve() {
+          return resizeObserver.unobserve(_this2.element);
+        };
+      } // I guess, if window is resized, `onResize()` will be triggered twice:
+      // once for window resize, and once for the scrollable container resize.
+      // But `onResize()` also has an internal check: if the container size
+      // hasn't changed since the previous time `onResize()` has been called,
+      // then `onResize()` doesn't do anything, so, I guess, there shouldn't be
+      // any "performance implications" of running the listener twice in such case.
+
+
+      var unlistenGlobalResize = addGlobalResizeListener(_onResize, {
+        container: container
+      });
+      return function () {
+        if (unobserve) {
+          unobserve();
+        }
+
+        unlistenGlobalResize();
+      };
+    }
+  }]);
+
+  return ScrollableContainer;
+}();
+
+
+var ScrollableWindowContainer =
+/*#__PURE__*/
+function (_ScrollableContainer) {
+  _inherits(ScrollableWindowContainer, _ScrollableContainer);
+
+  function ScrollableWindowContainer() {
+    _classCallCheck(this, ScrollableWindowContainer);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(ScrollableWindowContainer).call(this, window));
+  }
+  /**
+   * Returns the current scroll position.
+   * @return {number}
+   */
+
+
+  _createClass(ScrollableWindowContainer, [{
+    key: "getScrollY",
+    value: function getScrollY() {
+      // `window.scrollY` is not supported by Internet Explorer.
+      return window.pageYOffset;
+    }
+    /**
+     * Returns "scrollable container" width,
+     * i.e. the available width for its content.
+     * @return {number}
+     */
+
+  }, {
+    key: "getWidth",
+    value: function getWidth() {
+      // https://javascript.info/size-and-scroll-window
+      // `<!DOCTYPE html>` may be required in order for this to work correctly.
+      // Includes scrollbar (if any).
+      // Correctly reflects page zoom in iOS Safari.
+      // (scales screen width accordingly).
+      // But, includes scrollbar (if any).
+      return window.innerWidth;
+    }
+    /**
+     * Returns the height of the "scrollable container" itself.
+     * Not to be confused with the height of "scrollable container"'s content.
+     * @return {number}
+     */
+
+  }, {
+    key: "getHeight",
+    value: function getHeight() {
+      // https://javascript.info/size-and-scroll-window
+      // `<!DOCTYPE html>` is required in order for this to work correctly.
+      // Without it, the returned height would be the height of the entire document.
+      // Includes scrollbar (if any).
+      // Supports iOS Safari's dynamically shown/hidden
+      // top URL bar and bottom actions bar.
+      // https://codesandbox.io/s/elegant-fog-iddrh
+      // Tested in IE 11.
+      // It also correctly reflects page zoom in iOS Safari.
+      // (scales screen height accordingly).
+      // But, includes scrollbar (if any).
+      return window.innerHeight;
+    }
+    /**
+     * Returns the height of the content in a scrollable container.
+     * For example, a scrollable container can have a height of 500px,
+     * but the content in it could have a height of 5000px,
+     * in which case a vertical scrollbar is rendered, and only
+     * one-tenth of all the items are shown at any given moment.
+     * This function is currently only used when using the
+     * `preserveScrollPositionOfTheBottomOfTheListOnMount` feature.
+     * @return {number}
+     */
+
+  }, {
+    key: "getContentHeight",
+    value: function getContentHeight() {
+      return document.documentElement.scrollHeight;
+    }
+    /**
+     * Returns a "top offset" of an element
+     * relative to the "scrollable container"'s top edge.
+     * @param {Element} element
+     * @return {number}
+     */
+
+  }, {
+    key: "getTopOffset",
+    value: function getTopOffset(element) {
+      var borderTopWidth = document.clientTop || document.body.clientTop || 0;
+      return element.getBoundingClientRect().top + this.getScrollY() - borderTopWidth;
+    }
+    /**
+     * Adds a "resize" event listener to the "scrollable container".
+     * @param {onScroll} Should be called whenever the "scrollable container"'s width or height (potentially) changes.
+     * @param  {Element} options.container — The result of the `getContainerElement()` function that was passed in `VirtualScroller` constructor. For example, DOM renderer uses it to filter-out unrelated "resize" events.
+     * @return {function} Returns a function that stops listening.
+     */
+
+  }, {
+    key: "onResize",
+    value: function onResize(_onResize2, _ref2) {
+      var container = _ref2.container;
+      return addGlobalResizeListener(_onResize2, {
+        container: container
+      });
+    } // isVisible() {
+    // 	return true
+    // }
+
+  }]);
+
+  return ScrollableWindowContainer;
+}(ScrollableContainer);
+/**
+ * Adds a "resize" event listener to the `window`.
+ * @param {onResize} Should be called whenever the "container"'s width or height (potentially) changes.
+ * @param  {Element} options.container — The "container".
+ * @return {function} Returns a function that stops listening.
+ */
+
+function addGlobalResizeListener(onResize, _ref3) {
+  var container = _ref3.container;
+
+  var onResizeListener = function onResizeListener() {
+    // By default, `VirtualScroller` always performs a re-layout
+    // on window `resize` event. But browsers (Chrome, Firefox)
+    // [trigger](https://developer.mozilla.org/en-US/docs/Web/API/Window/fullScreen#Notes)
+    // window `resize` event also when a user switches into fullscreen mode:
+    // for example, when a user is watching a video and double-clicks on it
+    // to maximize it. And also when the user goes out of the fullscreen mode.
+    // Each such fullscreen mode entering/exiting will trigger window `resize`
+    // event that will it turn trigger a re-layout of `VirtualScroller`,
+    // resulting in bad user experience. To prevent that, such cases are filtered out.
+    // Some other workaround:
+    // https://stackoverflow.com/questions/23770449/embedded-youtube-video-fullscreen-or-causing-resize
+    if (document.fullscreenElement) {
+      // If the fullscreened element doesn't contain the list
+      // (and is not the list itself), then the layout hasn't been affected,
+      // so don't perform a re-layout.
+      //
+      // For example, suppose there's a list of items, and some item contains a video.
+      // If, upon clicking such video, it plays inline, and the user enters
+      // fullscreen mode while playing such inline video, then the layout won't be
+      // affected, and so such `resize` event should be ignored: when
+      // `document.fullscreenElement` is in a separate "branch" relative to the
+      // `container`.
+      //
+      // Another scenario: suppose that upon click, the video doesn't play inline,
+      // but instead a "Slideshow" component is open, with the video shown at the
+      // center of the screen in an overlay. If then the user enters fullscreen mode,
+      // the layout wouldn't be affected too, so such `resize` event should also be
+      // ignored: when `document.fullscreenElement` is inside the `container`.
+      //
+      if (document.fullscreenElement.contains(container)) {// The element is either the `container`'s ancestor,
+        // Or is the `container` itself.
+        // (`a.contains(b)` includes the `a === b` case).
+        // So the `resize` event will affect the `container`'s dimensions.
+      } else {
+        // The element is either inside the `container`,
+        // Or is in a separate tree.
+        // So the `resize` event won't affect the `container`'s dimensions.
+        return;
+      }
+    }
+
+    onResize();
+  };
+
+  window.addEventListener('resize', onResizeListener);
+  return function () {
+    return window.removeEventListener('resize', onResizeListener);
+  };
+}
+//# sourceMappingURL=ScrollableContainer.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/DOM/VirtualScroller.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/DOM/VirtualScroller.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ VirtualScroller)
+/* harmony export */ });
+/* harmony import */ var _VirtualScroller__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../VirtualScroller */ "./node_modules/virtual-scroller/modules/VirtualScroller.js");
+/* harmony import */ var _utility_debug__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/debug */ "./node_modules/virtual-scroller/modules/utility/debug.js");
+/* harmony import */ var _utility_px__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/px */ "./node_modules/virtual-scroller/modules/utility/px.js");
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+
+var VirtualScroller =
+/*#__PURE__*/
+function () {
+  function VirtualScroller(element, _items, renderItem) {
+    var _this = this;
+
+    var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+    _classCallCheck(this, VirtualScroller);
+
+    _defineProperty(this, "onStateChange", function (state, prevState) {
+      var items = state.items,
+          firstShownItemIndex = state.firstShownItemIndex,
+          lastShownItemIndex = state.lastShownItemIndex,
+          beforeItemsHeight = state.beforeItemsHeight,
+          afterItemsHeight = state.afterItemsHeight;
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('~ On state change ~');
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Previous state', prevState);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('New state', state); // Set container padding top and bottom.
+      // Work around `<tbody/>` not being able to have `padding`.
+      // https://gitlab.com/catamphetamine/virtual-scroller/-/issues/1
+      // `this.virtualScroller` hasn't been initialized yet at this stage,
+      // so using `this.tbody` instead of `this.virtualScroller.tbody`.
+
+      if (!_this.tbody) {
+        _this.container.style.paddingTop = (0,_utility_px__WEBPACK_IMPORTED_MODULE_1__.default)(beforeItemsHeight);
+        _this.container.style.paddingBottom = (0,_utility_px__WEBPACK_IMPORTED_MODULE_1__.default)(afterItemsHeight);
+      } // Perform an intelligent "diff" re-render if the `items` are the same.
+
+
+      var diffRender = prevState && items === prevState.items && items.length > 0; // Remove no longer visible items from the DOM.
+
+      if (diffRender) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Incremental rerender'); // Decrement instead of increment here because
+        // `this.container.removeChild()` changes indexes.
+
+        var _i = prevState.lastShownItemIndex;
+
+        while (_i >= prevState.firstShownItemIndex) {
+          if (_i >= firstShownItemIndex && _i <= lastShownItemIndex) {// The item is still visible.
+          } else {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Remove item index', _i); // The item is no longer visible. Remove it.
+
+            _this.unmountItem(_this.container.childNodes[_i - prevState.firstShownItemIndex]);
+          }
+
+          _i--;
+        }
+      } else {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Rerender from scratch');
+
+        while (_this.container.firstChild) {
+          _this.unmountItem(_this.container.firstChild);
+        }
+      } // Add newly visible items to the DOM.
+
+
+      var shouldPrependItems = diffRender;
+      var prependBeforeItemElement = shouldPrependItems && _this.container.firstChild;
+      var i = firstShownItemIndex;
+
+      while (i <= lastShownItemIndex) {
+        if (diffRender && i >= prevState.firstShownItemIndex && i <= prevState.lastShownItemIndex) {
+          // The item is already being rendered.
+          // Next items will be appended rather than prepended.
+          if (shouldPrependItems) {
+            shouldPrependItems = false;
+          }
+        } else {
+          var item = _this.renderItem(items[i]);
+
+          if (shouldPrependItems) {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Prepend item index', i); // Append `item` to `this.container` before the retained items.
+
+            _this.container.insertBefore(item, prependBeforeItemElement);
+          } else {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Append item index', i); // Append `item` to `this.container`.
+
+            _this.container.appendChild(item);
+          }
+        }
+
+        i++;
+      }
+    });
+
+    _defineProperty(this, "onUnmount", function () {
+      console.warn('[virtual-scroller] `.onUnmount()` instance method name is deprecated, use `.stop()` instance method name instead.');
+
+      _this.stop();
+    });
+
+    _defineProperty(this, "destroy", function () {
+      console.warn('[virtual-scroller] `.destroy()` instance method name is deprecated, use `.stop()` instance method name instead.');
+
+      _this.stop();
+    });
+
+    _defineProperty(this, "stop", function () {
+      _this.virtualScroller.stop();
+    });
+
+    this.container = element;
+    this.renderItem = renderItem;
+
+    var onMount = options.onMount,
+        onItemUnmount = options.onItemUnmount,
+        restOptions = _objectWithoutProperties(options, ["onMount", "onItemUnmount"]);
+
+    this.onItemUnmount = onItemUnmount;
+    this.tbody = this.container.tagName === 'TBODY';
+    this.virtualScroller = new _VirtualScroller__WEBPACK_IMPORTED_MODULE_2__.default(function () {
+      return _this.container;
+    }, _items, _objectSpread({}, restOptions, {
+      tbody: this.tbody,
+      onStateChange: this.onStateChange
+    })); // `onMount()` option is deprecated due to no longer being used.
+    // If someone thinks there's a valid use case for it, create an issue.
+
+    if (onMount) {
+      onMount();
+    }
+
+    this.virtualScroller.listen();
+  }
+
+  _createClass(VirtualScroller, [{
+    key: "unmountItem",
+    value: function unmountItem(itemElement) {
+      this.container.removeChild(itemElement);
+
+      if (this.onItemUnmount) {
+        this.onItemUnmount(itemElement);
+      }
+    }
+  }, {
+    key: "onItemHeightChange",
+    value: function onItemHeightChange(i) {
+      this.virtualScroller.onItemHeightChange(i);
+    }
+    /**
+     * @deprecated
+     * `.updateItems()` has been renamed to `.setItems()`.
+     */
+
+  }, {
+    key: "updateItems",
+    value: function updateItems(newItems, options) {
+      this.setItems(newItems, options);
+    }
+  }, {
+    key: "setItems",
+    value: function setItems(newItems, options) {
+      this.virtualScroller.setItems(newItems, options);
+    }
+    /*
+    getItemCoordinates(i) {
+      return this.virtualScroller.getItemCoordinates(i)
+    }
+    */
+
+  }]);
+
+  return VirtualScroller;
+}();
+
+
+//# sourceMappingURL=VirtualScroller.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/DOM/WaitForStylesToLoad.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/DOM/WaitForStylesToLoad.js ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ WaitForStylesToLoad)
+/* harmony export */ });
+/* harmony import */ var request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! request-animation-frame-timeout */ "./node_modules/request-animation-frame-timeout/modules/index.js");
+/* harmony import */ var _Layout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Layout */ "./node_modules/virtual-scroller/modules/Layout.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+// For some weird reason, in Chrome, `setTimeout()` would lag up to a second (or more) behind.
+// Turns out, Chrome developers have deprecated `setTimeout()` API entirely without asking anyone.
+// Replacing `setTimeout()` with `requestAnimationFrame()` can work around that Chrome bug.
+// https://github.com/bvaughn/react-virtualized/issues/722
+
+ // `VirtualScroller` calls `this.layout.layOut()` on mount,
+// but if the page styles are applied after `VirtualScroller` mounts
+// (for example, if styles are applied via javascript, like Webpack does)
+// then the list might not render correctly and will only show the first item.
+// The reason for that would be that calling `.getListTopOffsetInsideScrollableContainer()`
+// on mount returns "incorrect" `top` position because the styles haven't been applied yet.
+// For example, consider a page:
+// <div class="page">
+//   <nav class="sidebar">...</nav>
+//   <main>...</main>
+// </div>
+// The sidebar is styled as `position: fixed`, but until
+// the page styles have been applied it's gonna be a regular `<div/>`
+// meaning that `<main/>` will be rendered below the sidebar
+// and will appear offscreen and so it will only render the first item.
+// Then, the page styles are loaded and applied and the sidebar
+// is now `position: fixed` so `<main/>` is now rendered at the top of the page
+// but `VirtualScroller`'s `.render()` has already been called
+// and it won't re-render until the user scrolls or the window is resized.
+// This type of a bug doesn't occur in production, but it can appear
+// in development mode when using Webpack. The workaround `VirtualScroller`
+// implements for such cases is calling `.getListTopOffsetInsideScrollableContainer()`
+// on the list container DOM element periodically (every second) to check
+// if the `top` coordinate has changed as a result of CSS being applied:
+// if it has then it recalculates the shown item indexes.
+
+var WaitForStylesToLoad =
+/*#__PURE__*/
+function () {
+  function WaitForStylesToLoad(_ref) {
+    var updateLayout = _ref.updateLayout,
+        getListTopOffsetInsideScrollableContainer = _ref.getListTopOffsetInsideScrollableContainer;
+
+    _classCallCheck(this, WaitForStylesToLoad);
+
+    this.updateLayout = updateLayout;
+    this.getListTopOffsetInsideScrollableContainer = getListTopOffsetInsideScrollableContainer;
+  }
+
+  _createClass(WaitForStylesToLoad, [{
+    key: "onGotListTopOffset",
+    value: function onGotListTopOffset(listTopOffset) {
+      if (this.listTopOffsetInsideScrollableContainer === undefined) {
+        // Start periodical checks of the list's top offset
+        // in order to perform a re-layout in case it changes.
+        // See the comments in `WaitForStylesToLoad.js` file
+        // on why can the list's top offset change, and in which circumstances.
+        this.start();
+      }
+
+      this.listTopOffsetInsideScrollableContainer = listTopOffset;
+    }
+  }, {
+    key: "start",
+    value: function start() {
+      this.isRendered = true;
+      this.watchListTopOffset();
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.isRendered = false;
+      (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.clearTimeout)(this.watchListTopOffsetTimer);
+    }
+  }, {
+    key: "watchListTopOffset",
+    value: function watchListTopOffset() {
+      var _this = this;
+
+      var startedAt = Date.now();
+
+      var check = function check() {
+        // If `VirtualScroller` has been unmounted
+        // while `setTimeout()` was waiting, then exit.
+        if (!_this.isRendered) {
+          return;
+        } // Skip comparing `top` coordinate of the list
+        // when this function is called for the first time.
+
+
+        if (_this.listTopOffsetInsideScrollableContainer !== undefined) {
+          // Calling `this.getListTopOffsetInsideScrollableContainer()`
+          // on an element is about 0.003 milliseconds on a modern desktop CPU,
+          // so I guess it's fine calling it twice a second.
+          if (_this.getListTopOffsetInsideScrollableContainer() !== _this.listTopOffsetInsideScrollableContainer) {
+            _this.updateLayout({
+              reason: _Layout__WEBPACK_IMPORTED_MODULE_1__.LAYOUT_REASON.TOP_OFFSET_CHANGED
+            });
+          }
+        } // Compare `top` coordinate of the list twice a second
+        // to find out if it has changed as a result of loading CSS styles.
+        // The total duration of 3 seconds would be enough for any styles to load, I guess.
+        // There could be other cases changing the `top` coordinate
+        // of the list (like collapsing an "accordeon" panel above the list
+        // without scrolling the page), but those cases should be handled
+        // by manually calling `.updateLayout()` instance method on `VirtualScroller` instance.
+
+
+        if (Date.now() - startedAt < WATCH_LIST_TOP_OFFSET_MAX_DURATION) {
+          _this.watchListTopOffsetTimer = (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.setTimeout)(check, WATCH_LIST_TOP_OFFSET_INTERVAL);
+        }
+      }; // Run the cycle.
+
+
+      check();
+    }
+  }]);
+
+  return WaitForStylesToLoad;
+}();
+
+
+var WATCH_LIST_TOP_OFFSET_INTERVAL = 500;
+var WATCH_LIST_TOP_OFFSET_MAX_DURATION = 3000;
+//# sourceMappingURL=WaitForStylesToLoad.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/DOM/tbody.js":
+/*!************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/DOM/tbody.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "BROWSER_NOT_SUPPORTED_ERROR": () => (/* binding */ BROWSER_NOT_SUPPORTED_ERROR),
+/* harmony export */   "supportsTbody": () => (/* binding */ supportsTbody),
+/* harmony export */   "addTbodyStyles": () => (/* binding */ addTbodyStyles),
+/* harmony export */   "setTbodyPadding": () => (/* binding */ setTbodyPadding)
+/* harmony export */ });
+/* harmony import */ var _utility_px__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/px */ "./node_modules/virtual-scroller/modules/utility/px.js");
+// A workaround for `<tbody/>` not being able to have `padding`.
+// https://gitlab.com/catamphetamine/virtual-scroller/-/issues/1
+
+var BROWSER_NOT_SUPPORTED_ERROR = 'It looks like you\'re using Internet Explorer which doesn\'t support CSS variables required for a <tbody/> container. VirtualScroller has been switched into "bypass" mode (render all items). See: https://gitlab.com/catamphetamine/virtual-scroller/-/issues/1';
+function supportsTbody() {
+  // Detect Internet Explorer.
+  // https://stackoverflow.com/questions/19999388/check-if-user-is-using-ie
+  // `documentMode` is an IE-only property.
+  // Supports IE 9-11. Maybe even IE 8.
+  // http://msdn.microsoft.com/en-us/library/ie/cc196988(v=vs.85).aspx
+  if (typeof window !== 'undefined' && window.document.documentMode) {
+    // CSS variables aren't supported in Internet Explorer.
+    return false;
+  }
+
+  return true;
+}
+function addTbodyStyles(tbody) {
+  // `classList.add` is supported in Internet Explorer 10+.
+  tbody.classList.add('VirtualScroller');
+  var style = document.getElementById('VirtualScrollerStyle');
+
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'VirtualScrollerStyle'; // CSS variables aren't supported in Internet Explorer.
+
+    style.innerText = "\n\t\t\ttbody.VirtualScroller:before {\n\t\t\t\tcontent: '';\n\t\t\t\tdisplay: table-row;\n\t\t\t\theight: var(--VirtualScroller-paddingTop);\n\t\t\t}\n\t\t\ttbody.VirtualScroller:after {\n\t\t\t\tcontent: '';\n\t\t\t\tdisplay: table-row;\n\t\t\t\theight: var(--VirtualScroller-paddingBottom);\n\t\t\t}\n\t\t".replace(/[\n\t]/g, '');
+    document.head.appendChild(style);
+  }
+}
+function setTbodyPadding(tbody, beforeItemsHeight, afterItemsHeight) {
+  // CSS variables aren't supported in Internet Explorer.
+  tbody.style.setProperty('--VirtualScroller-paddingTop', (0,_utility_px__WEBPACK_IMPORTED_MODULE_0__.default)(beforeItemsHeight));
+  tbody.style.setProperty('--VirtualScroller-paddingBottom', (0,_utility_px__WEBPACK_IMPORTED_MODULE_0__.default)(afterItemsHeight));
+}
+//# sourceMappingURL=tbody.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/ItemHeights.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/ItemHeights.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ItemHeights)
+/* harmony export */ });
+/* harmony import */ var _utility_debug__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/debug */ "./node_modules/virtual-scroller/modules/utility/debug.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var ItemHeights =
+/*#__PURE__*/
+function () {
+  function ItemHeights(screen, getContainerElement, getItemHeight, setItemHeight) {
+    _classCallCheck(this, ItemHeights);
+
+    this.screen = screen;
+    this.getContainerElement = getContainerElement;
+    this._get = getItemHeight;
+    this._set = setItemHeight;
+    this.reset();
+  }
+
+  _createClass(ItemHeights, [{
+    key: "reset",
+    value: function reset() {
+      this.measuredItemsHeight = 0; // "First measured item index" variable was introduced
+      // because it's not always `0`: when `virtualScroller.setItems()`
+      // is called, some items might get prepended, in which case
+      // `this.lastMeasuredItemIndex` is updated. If there was no
+      // `this.firstMeasuredItemIndex`, then the average item height
+      // calculated in `.getAverage()` would be incorrect in the timeframe
+      // between `.setItems()` is called and those changes have been rendered.
+      // And in that timeframe, `.getAverage()` is used to calculate the "layout":
+      // stuff like "before/after items height" and "estimated items count on screen".
+
+      this.firstMeasuredItemIndex = undefined;
+      this.lastMeasuredItemIndex = undefined;
+    }
+    /**
+     * Is called after `.reset()`.
+     * Initializes `this.measuredItemsHeight`, `this.firstMeasuredItemIndex`
+     * and `this.lastMeasuredItemIndex` instance variables from `VirtualScroller` `state`.
+     * These instance variables are used when calculating "average" item height:
+     * the "average" item height is simply `this.measuredItemsHeight` divided by
+     * `this.lastMeasuredItemIndex` minus `this.firstMeasuredItemIndex` plus 1.
+     */
+
+  }, {
+    key: "initialize",
+    value: function initialize(itemHeights) {
+      var i = 0;
+
+      while (i < itemHeights.length) {
+        if (itemHeights[i] === undefined) {
+          if (this.firstMeasuredItemIndex !== undefined) {
+            this.lastMeasuredItemIndex = i - 1;
+            break;
+          }
+        } else {
+          if (this.firstMeasuredItemIndex === undefined) {
+            this.firstMeasuredItemIndex = i;
+          }
+
+          this.measuredItemsHeight += itemHeights[i];
+        }
+
+        i++;
+      }
+    } // Seems to be no longer used.
+    // getItemHeight(i, firstShownItemIndex) {
+    // 	if (this._get(i)) {
+    // 		return this._get(i)
+    // 	}
+    // 	const itemHeight = this._measureItemHeight(i, firstShownItemIndex)
+    // 	if (itemHeight) {
+    // 		this._set(i, itemHeight)
+    // 		return itemHeight
+    // 	}
+    // 	return this.getAverage()
+    // }
+
+  }, {
+    key: "_measureItemHeight",
+    value: function _measureItemHeight(i, firstShownItemIndex) {
+      var container = this.getContainerElement();
+
+      if (container) {
+        var elementIndex = i - firstShownItemIndex;
+
+        if (elementIndex >= 0 && elementIndex < this.screen.getChildElementsCount(container)) {
+          return this.screen.getChildElementHeight(container, elementIndex);
+        }
+      }
+    }
+    /**
+     * Measures item heights:
+     *
+     * * For the items that haven't been previously measured,
+     *   measures them for the first time.
+     *
+     * * For the items that have been previoulsy measured,
+     *   validate that their previously measured height
+     *   is still equal to their current height.
+     *   The unequalness may not necessarily be caused by
+     *   incorrect use of `virtual-scroller`: there are
+     *   also some valid use cases when such unequalness
+     *   could happen (see the comments in the code).
+     *
+     * @param {number} firstShownItemIndex
+     * @param {number} lastShownItemIndex
+     * @return {number[]} The indexes of the items that have not previously been measured and have been measured now.
+     */
+
+  }, {
+    key: "measureItemHeights",
+    value: function measureItemHeights(firstShownItemIndex, lastShownItemIndex) {
+      // If no items are rendered, don't measure anything.
+      if (firstShownItemIndex === undefined) {
+        return;
+      } // Reset `this.measuredItemsHeight` if it's not a "continuous" measured items list:
+      // if a group of items has been measured previously, and now it has rendered a completely
+      // different group of items, and there's a non-measured "gap" between those two groups,
+      // then reset `this.measuredItemsHeight` and "first measured"/"last measured" item indexes.
+      // For example, this could happen when `.setItems()` prepends a lot of new items.
+
+
+      if (this.firstMeasuredItemIndex !== undefined) {
+        if (firstShownItemIndex > this.lastMeasuredItemIndex + 1 || lastShownItemIndex < this.firstMeasuredItemIndex - 1) {
+          // Reset.
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Non-measured items gap detected. Reset first and last measured item indexes.');
+          this.reset();
+        }
+      }
+
+      var nonPreviouslyMeasuredItemIndexes = [];
+      var previousFirstMeasuredItemIndex = this.firstMeasuredItemIndex;
+      var previousLastMeasuredItemIndex = this.lastMeasuredItemIndex;
+      var firstMeasuredItemIndexHasBeenUpdated = false;
+      var i = firstShownItemIndex;
+
+      while (i <= lastShownItemIndex) {
+        // Don't re-measure item heights that have been measured previously.
+        // The rationale is that developers are supposed to manually call
+        // `.onItemHeightChange()` every time an item's height changes.
+        // If developers aren't neglecting that rule, item heights won't
+        // change unexpectedly.
+        // // Re-measure all shown items' heights, because an item's height
+        // // might have changed since it has been measured initially.
+        // // For example, if an item is a long comment with a "Show more" button,
+        // // then the user might have clicked that "Show more" button.
+        if (this._get(i) === undefined) {
+          nonPreviouslyMeasuredItemIndexes.push(i);
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Item', i, 'hasn\'t been previously measured');
+
+          var height = this._measureItemHeight(i, firstShownItemIndex);
+
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Height', height);
+
+          this._set(i, height); // Update average item height calculation variables
+          // related to the previously measured items
+          // that're above the items currently being shown.
+          // It is known to be a "continuous" measured items list,
+          // because the code at the start of this function checks that.
+
+
+          if (previousFirstMeasuredItemIndex === undefined || i < previousFirstMeasuredItemIndex) {
+            this.measuredItemsHeight += height; // Update first measured item index.
+
+            if (!firstMeasuredItemIndexHasBeenUpdated) {
+              // log('Set first measured item index', i)
+              this.firstMeasuredItemIndex = i;
+              firstMeasuredItemIndexHasBeenUpdated = true;
+            }
+          } // Update average item height calculation variables
+          // related to the previously measured items
+          // that're below the items currently being shown.
+          // It is known to be a "continuous" measured items list,
+          // because the code at the start of this function checks that.
+
+
+          if (previousLastMeasuredItemIndex === undefined || i > previousLastMeasuredItemIndex) {
+            // If `previousLastMeasuredItemIndex` is `undefined`
+            // then `previousFirstMeasuredItemIndex` is also `undefined`
+            // which means that the item's `height` has already been added
+            // to `this.measuredItemsHeight` in the code above,
+            // so this condition guards against counting the item's `height`
+            // twice in `this.measuredItemsHeight`.
+            if (previousLastMeasuredItemIndex !== undefined) {
+              // Add newly shown item height.
+              this.measuredItemsHeight += height;
+            } // Update last measured item index.
+
+
+            this.lastMeasuredItemIndex = i;
+          }
+        } else {
+          // // Validate the item's height right after showing it after being hidden,
+          // // because, if the stored item's state isn't applied properly, the item's
+          // // height might be incorrect when it's rendered with that state not applied,
+          // // and so a developer could know that there's a bug in their code.
+          //
+          // Actually, don't perform a strict previously measured item height validation
+          // here, because there could be valid cases when the item's height has changed
+          // by this time before the `.onItemHeightChange(i)` call has been executed.
+          // For example, suppose there's a list of several items on a page,
+          // and those items are in "minimized" state (having height 100px).
+          // Then, a user clicks an "Expand all items" button, and all items
+          // in the list are expanded (expanded item height is gonna be 700px).
+          // `VirtualScroller` demands that `.onItemHeightChange(i)` is called
+          // in such cases, and the developer has properly added the code to do that.
+          // So, if there were 10 "minimized" items visible on a page, then there
+          // will be 10 individual `.onItemHeightChange(i)` calls. No issues so far.
+          // But, as the first `.onItemHeightChange(i)` call executes, it immediately
+          // ("synchronously") triggers a re-layout, and immediately after that re-layout
+          // `itemHeights.measureItemHeights()` function is called,
+          // that detects the height mismatch for all the rest of the items.
+          // So, even though the developer has written their code properly, there're
+          // still situations when the item's height could have changed by this time,
+          // and the `.onItemHeightChange(i)` call hasn't been executed for this item yet.
+          //
+          var previousHeight = this._get(i);
+
+          var _height = this._measureItemHeight(i, firstShownItemIndex);
+
+          if (previousHeight !== _height) {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Item', i, 'height has changed from', previousHeight, 'to', _height, 'while it was shown, and ".onItemHeightChange(i)" hasn\'t been called yet. This is not necessarily a bug, and could happen, for example, when there\'re several `onItemHeightChange(i)` calls issued at the same time.');
+          }
+        }
+
+        i++;
+      } // // Update average item height.
+      // this.updateAverageItemHeight()
+
+
+      return nonPreviouslyMeasuredItemIndexes;
+    }
+    /**
+     * Re-measures item height.
+     * @param  {number} i — Item index.
+     * @param  {number} firstShownItemIndex
+     */
+
+  }, {
+    key: "remeasureItemHeight",
+    value: function remeasureItemHeight(i, firstShownItemIndex) {
+      var previousHeight = this._get(i);
+
+      var height = this._measureItemHeight(i, firstShownItemIndex); // // Because this function is called from `.onItemHeightChange()`,
+      // // there're no guarantees in which circumstances a developer calls it,
+      // // and for which item indexes.
+      // // Therefore, to guard against cases of incorrect usage,
+      // // this function won't crash anything if the item isn't rendered
+      // // or hasn't been previously rendered.
+      // if (height !== undefined) {
+      // 	reportError(`"onItemHeightChange()" has been called for item ${i}, but that item isn't rendered.`)
+      // 	return
+      // }
+      // if (previousHeight === undefined) {
+      // 	reportError(`"onItemHeightChange()" has been called for item ${i}, but that item hasn't been rendered before.`)
+      // 	return
+      // }
+
+
+      this._set(i, height);
+
+      this.measuredItemsHeight += height - previousHeight;
+      return height;
+    } // /**
+    //  * "Average" item height is stored as an instance variable.
+    //  * For example, for caching, so that it isn't calculated every time it's requested.
+    //  * But that would be negligible performance gain, not really worth the extra code.
+    //  * Another thing it's stored for as an instance variable is
+    //  * keeping "previous" "average" item height, because it can be more precise
+    //  * than the newly calculated "average" item height, provided it had
+    //  * more "samples" (measured items). The newly calculated average item height
+    //  * could get less samples in a scenario when the scroll somehow jumps
+    //  * from one position to some other distant position: in that case previous
+    //  * "total measured items height" is discarded and the new one is initialized.
+    //  * Could such situation happen in real life? I guess, it's unlikely.
+    //  * So I'm commenting out this code, but still keeping it just in case.
+    //  */
+    // updateAverageItemHeight() {
+    // 	this.averageItemHeightSamplesCount = this.lastMeasuredItemIndex - this.firstMeasuredItemIndex + 1
+    // 	this.averageItemHeight = this.measuredItemsHeight / this.averageItemHeightSamplesCount
+    // }
+    //
+    // /**
+    //  * Public API: is called by `VirtualScroller`.
+    //  * @return {number}
+    //  */
+    // getAverage() {
+    // 	// Previously measured average item height might still be
+    // 	// more precise if it contains more measured items ("samples").
+    // 	if (this.previousAverageItemHeight) {
+    // 		if (this.previousAverageItemHeightSamplesCount > this.averageItemHeightSamplesCount) {
+    // 			return this.previousAverageItemHeight
+    // 		}
+    // 	}
+    // 	return this.averageItemHeight || 0
+    // }
+
+    /**
+     * Public API: is called by `VirtualScroller`.
+     * @return {number}
+     */
+
+  }, {
+    key: "getAverage",
+    value: function getAverage() {
+      if (this.lastMeasuredItemIndex === undefined) {
+        return 0;
+      }
+
+      return this.measuredItemsHeight / (this.lastMeasuredItemIndex - this.firstMeasuredItemIndex + 1);
+    }
+  }, {
+    key: "onPrepend",
+    value: function onPrepend(count) {
+      if (this.firstMeasuredItemIndex !== undefined) {
+        this.firstMeasuredItemIndex += count;
+        this.lastMeasuredItemIndex += count;
+      }
+    }
+  }]);
+
+  return ItemHeights;
+}();
+
+
+//# sourceMappingURL=ItemHeights.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/Layout.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/Layout.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Layout),
+/* harmony export */   "LAYOUT_REASON": () => (/* binding */ LAYOUT_REASON)
+/* harmony export */ });
+/* harmony import */ var _utility_debug__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/debug */ "./node_modules/virtual-scroller/modules/utility/debug.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Layout =
+/*#__PURE__*/
+function () {
+  function Layout(_ref) {
+    var bypass = _ref.bypass,
+        estimatedItemHeight = _ref.estimatedItemHeight,
+        measureItemsBatchSize = _ref.measureItemsBatchSize,
+        getVerticalSpacing = _ref.getVerticalSpacing,
+        getColumnsCount = _ref.getColumnsCount,
+        getItemHeight = _ref.getItemHeight,
+        getAverageItemHeight = _ref.getAverageItemHeight;
+
+    _classCallCheck(this, Layout);
+
+    this.bypass = bypass;
+    this.estimatedItemHeight = estimatedItemHeight;
+    this.measureItemsBatchSize = measureItemsBatchSize;
+    this.getVerticalSpacing = getVerticalSpacing;
+    this.getColumnsCount = getColumnsCount;
+    this.getItemHeight = getItemHeight;
+    this.getAverageItemHeight = getAverageItemHeight;
+  }
+
+  _createClass(Layout, [{
+    key: "getInitialLayoutValues",
+    value: function getInitialLayoutValues(_ref2) {
+      var bypass = _ref2.bypass,
+          itemsCount = _ref2.itemsCount,
+          visibleAreaHeightIncludingMargins = _ref2.visibleAreaHeightIncludingMargins;
+      // On server side, at initialization time, there's no "visible area height",
+      // so default to `1` estimated rows count.
+      var estimatedRowsCount = visibleAreaHeightIncludingMargins ? this.getEstimatedRowsCountForHeight(visibleAreaHeightIncludingMargins) : 1;
+      var firstShownItemIndex;
+      var lastShownItemIndex; // If there're no items then `firstShownItemIndex` stays `undefined`.
+
+      if (itemsCount > 0) {
+        firstShownItemIndex = 0;
+        lastShownItemIndex = this.getLastShownItemIndex(firstShownItemIndex, itemsCount, estimatedRowsCount, bypass);
+      }
+
+      return {
+        beforeItemsHeight: 0,
+        afterItemsHeight: 0,
+        firstShownItemIndex: firstShownItemIndex,
+        lastShownItemIndex: lastShownItemIndex
+      };
+    }
+  }, {
+    key: "getLastShownItemIndex",
+    value: function getLastShownItemIndex(firstShownItemIndex, itemsCount, estimatedRowsCount, bypass) {
+      if (this.bypass || bypass) {
+        return itemsCount - 1;
+      }
+
+      return Math.min(firstShownItemIndex + (estimatedRowsCount * this.getColumnsCount() - 1), itemsCount - 1);
+    }
+  }, {
+    key: "getEstimatedRowsCountForHeight",
+    value: function getEstimatedRowsCountForHeight(height) {
+      var estimatedItemHeight = this.getEstimatedItemHeight();
+
+      if (estimatedItemHeight) {
+        return Math.ceil((height + this.getVerticalSpacing()) / (estimatedItemHeight + this.getVerticalSpacing()));
+      } else {
+        // If no items have been rendered yet, and no `estimatedItemHeight` option
+        // has been passed, then default to `1` estimated rows count in any `height`.
+        return 1;
+      }
+    }
+    /**
+     * Returns estimated list item height.
+     * (depends on which items have been previously rendered and measured).
+     * @return {number}
+     */
+
+  }, {
+    key: "getEstimatedItemHeight",
+    value: function getEstimatedItemHeight() {
+      return this.getAverageItemHeight() || this.estimatedItemHeight || 0;
+    }
+  }, {
+    key: "updateLayoutForItemsDiff",
+    value: function updateLayoutForItemsDiff(layout, _ref3, _ref4) {
+      var prependedItemsCount = _ref3.prependedItemsCount,
+          appendedItemsCount = _ref3.appendedItemsCount;
+      var itemsCount = _ref4.itemsCount;
+      layout.firstShownItemIndex += prependedItemsCount;
+      layout.lastShownItemIndex += prependedItemsCount;
+      var columnsCount = this.getColumnsCount();
+
+      if (prependedItemsCount % columnsCount === 0) {
+        // If the layout stays the same, then simply increase
+        // the top and bottom margins proportionally to the amount
+        // of the items added.
+        var prependedRowsCount = prependedItemsCount / columnsCount;
+        var appendedRowsCount = Math.ceil(appendedItemsCount / columnsCount);
+        var averageItemHeight = this.getAverageItemHeight();
+        var verticalSpacing = this.getVerticalSpacing();
+        layout.beforeItemsHeight += prependedRowsCount * (averageItemHeight + verticalSpacing);
+        layout.afterItemsHeight += appendedRowsCount * (verticalSpacing + averageItemHeight);
+      } else {
+        // Rows will be rebalanced as a result of prepending the items,
+        // and the row heights can change as a result, so recalculate
+        // `beforeItemsHeight` and `afterItemsHeight` from scratch.
+        // `this.itemHeights[]` and `firstShownItemIndex`/`lastShownItemIndex`
+        // have already been updated at this point.
+        layout.beforeItemsHeight = this.getBeforeItemsHeight(firstShownItemIndex, lastShownItemIndex);
+        layout.afterItemsHeight = this.getAfterItemsHeight(firstShownItemIndex, lastShownItemIndex, itemsCount);
+      }
+    }
+  }, {
+    key: "_getVisibleItemIndexes",
+    value: function _getVisibleItemIndexes(visibleAreaTop, visibleAreaBottom, listTopOffset, itemsCount) {
+      var columnsCount = this.getColumnsCount();
+      var firstShownItemIndex;
+      var lastShownItemIndex;
+      var previousRowsHeight = 0;
+      var rowsCount = Math.ceil(itemsCount / columnsCount);
+      var rowIndex = 0;
+
+      while (rowIndex < rowsCount) {
+        var hasMoreRows = itemsCount > (rowIndex + 1) * columnsCount;
+        var verticalSpaceAfterCurrentRow = hasMoreRows ? this.getVerticalSpacing() : 0;
+        var currentRowHeight = 0;
+        var columnIndex = 0;
+        var i = void 0;
+
+        while (columnIndex < columnsCount && (i = rowIndex * columnsCount + columnIndex) < itemsCount) {
+          var itemHeight = this.getItemHeight(i); // If an item that hasn't been shown (and measured) yet is encountered
+          // then show such item and then retry after it has been measured.
+
+          if (itemHeight === undefined) {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)("Item index ".concat(i, " lies within the visible area or its \"margins\", but its height hasn't been measured yet. Mark the item as \"shown\", render the list, measure the item's height and redo the layout."));
+
+            if (firstShownItemIndex === undefined) {
+              firstShownItemIndex = rowIndex * columnsCount;
+            }
+
+            var heightLeft = visibleAreaBottom - (listTopOffset + previousRowsHeight);
+            lastShownItemIndex = Math.min((rowIndex + this.getEstimatedRowsCountForHeight(heightLeft)) * columnsCount - 1, // Guard against index overflow.
+            itemsCount - 1);
+            return {
+              firstNonMeasuredItemIndex: i,
+              firstShownItemIndex: firstShownItemIndex,
+              lastShownItemIndex: lastShownItemIndex
+            };
+          }
+
+          currentRowHeight = Math.max(currentRowHeight, itemHeight); // If this is the first item visible
+          // then start showing items from this row.
+
+          if (firstShownItemIndex === undefined) {
+            if (listTopOffset + previousRowsHeight + currentRowHeight > visibleAreaTop) {
+              (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('First shown row index', rowIndex);
+              firstShownItemIndex = rowIndex * columnsCount;
+            }
+          } // If this item is the last one visible in the viewport then exit.
+
+
+          if (listTopOffset + previousRowsHeight + currentRowHeight + verticalSpaceAfterCurrentRow > visibleAreaBottom) {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Last shown row index', rowIndex); // The list height is estimated until all items have been seen,
+            // so it's possible that even when the list DOM element happens
+            // to be in the viewport in reality the list isn't visible
+            // in which case `firstShownItemIndex` will be `undefined`.
+
+            if (firstShownItemIndex !== undefined) {
+              lastShownItemIndex = Math.min( // The index of the last item in the current row.
+              (rowIndex + 1) * columnsCount - 1, // Guards against index overflow.
+              itemsCount - 1);
+            }
+
+            return {
+              firstShownItemIndex: firstShownItemIndex,
+              lastShownItemIndex: lastShownItemIndex
+            };
+          }
+
+          columnIndex++;
+        }
+
+        previousRowsHeight += currentRowHeight; // If there're more rows below the current row, then add vertical spacing.
+
+        previousRowsHeight += verticalSpaceAfterCurrentRow;
+        rowIndex++;
+      } // If there're no more items then the last item is the last one to show.
+
+
+      if (firstShownItemIndex !== undefined && lastShownItemIndex === undefined) {
+        lastShownItemIndex = itemsCount - 1;
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('Last item index (is fully visible)', lastShownItemIndex);
+      }
+
+      return {
+        firstShownItemIndex: firstShownItemIndex,
+        lastShownItemIndex: lastShownItemIndex
+      };
+    } // Finds the items which are displayed in the viewport.
+
+  }, {
+    key: "getVisibleItemIndexes",
+    value: function getVisibleItemIndexes(visibleAreaTop, visibleAreaBottom, listTopOffset, itemsCount) {
+      var _this$_getVisibleItem = this._getVisibleItemIndexes(visibleAreaTop, visibleAreaBottom, listTopOffset, itemsCount),
+          firstNonMeasuredItemIndex = _this$_getVisibleItem.firstNonMeasuredItemIndex,
+          firstShownItemIndex = _this$_getVisibleItem.firstShownItemIndex,
+          lastShownItemIndex = _this$_getVisibleItem.lastShownItemIndex;
+
+      var redoLayoutAfterMeasuringItemHeights = firstNonMeasuredItemIndex !== undefined; // If some items will be rendered in order to measure their height,
+      // and it's not a `preserveScrollPositionOnPrependItems` case,
+      // then limit the amount of such items being measured in a single pass.
+
+      if (redoLayoutAfterMeasuringItemHeights && this.measureItemsBatchSize) {
+        var maxAllowedLastShownItemIndex = firstNonMeasuredItemIndex + this.measureItemsBatchSize - 1;
+        var columnsCount = this.getColumnsCount();
+        lastShownItemIndex = Math.min( // Also guards against index overflow.
+        lastShownItemIndex, // The index of the last item in the row.
+        Math.ceil(maxAllowedLastShownItemIndex / columnsCount) * columnsCount - 1);
+      }
+
+      return {
+        firstShownItemIndex: firstShownItemIndex,
+        lastShownItemIndex: lastShownItemIndex,
+        redoLayoutAfterMeasuringItemHeights: redoLayoutAfterMeasuringItemHeights
+      };
+    }
+  }, {
+    key: "getNonVisibleListShownItemIndexes",
+    value: function getNonVisibleListShownItemIndexes() {
+      return {
+        firstShownItemIndex: 0,
+        lastShownItemIndex: 0,
+        redoLayoutAfterMeasuringItemHeights: this.getItemHeight(0) === undefined
+      };
+    }
+  }, {
+    key: "getItemIndexes",
+    value: function getItemIndexes(visibleAreaTop, visibleAreaBottom, listTopOffset, listHeight, itemsCount) {
+      var isVisible = listTopOffset + listHeight > visibleAreaTop && listTopOffset < visibleAreaBottom;
+
+      if (!isVisible) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('The entire list is off-screen. No items are visible.');
+        return;
+      } // Find the items which are displayed in the viewport.
+
+
+      var indexes = this.getVisibleItemIndexes(visibleAreaTop, visibleAreaBottom, listTopOffset, itemsCount); // The list height is estimated until all items have been seen,
+      // so it's possible that even when the list DOM element happens
+      // to be in the viewport, in reality the list isn't visible
+      // in which case `firstShownItemIndex` will be `undefined`.
+
+      if (indexes.firstShownItemIndex === undefined) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_0__.default)('The entire list is off-screen. No items are visible.');
+        return;
+      }
+
+      return indexes;
+    }
+    /**
+     * Measures "before" items height.
+     * @param  {number} firstShownItemIndex — New first shown item index.
+     * @param  {number} lastShownItemIndex — New last shown item index.
+     * @return {number}
+     */
+
+  }, {
+    key: "getBeforeItemsHeight",
+    value: function getBeforeItemsHeight(firstShownItemIndex, lastShownItemIndex) {
+      var columnsCount = this.getColumnsCount();
+      var firstShownRowIndex = Math.floor(firstShownItemIndex / columnsCount);
+      var beforeItemsHeight = 0; // Add all "before" items height.
+
+      var rowIndex = 0;
+
+      while (rowIndex < firstShownRowIndex) {
+        var rowHeight = 0;
+        var columnIndex = 0;
+
+        while (columnIndex < columnsCount) {
+          rowHeight = Math.max(rowHeight, this.getItemHeight(rowIndex * columnsCount + columnIndex) || this.getAverageItemHeight());
+          columnIndex++;
+        }
+
+        beforeItemsHeight += rowHeight;
+        beforeItemsHeight += this.getVerticalSpacing();
+        rowIndex++;
+      }
+
+      return beforeItemsHeight;
+    }
+    /**
+     * Measures "after" items height.
+     * @param  {number} firstShownItemIndex — New first shown item index.
+     * @param  {number} lastShownItemIndex — New last shown item index.
+     * @param  {number} averageItemHeight — Average item height.
+     * @param  {number} verticalSpacing — Item vertical spacing.
+     * @param  {number} itemsCount — Items count.
+     * @return {number}
+     */
+
+  }, {
+    key: "getAfterItemsHeight",
+    value: function getAfterItemsHeight(firstShownItemIndex, lastShownItemIndex, itemsCount) {
+      var columnsCount = this.getColumnsCount();
+      var rowsCount = Math.ceil(itemsCount / columnsCount);
+      var lastShownRowIndex = Math.floor(lastShownItemIndex / columnsCount);
+      var afterItemsHeight = 0;
+      var rowIndex = lastShownRowIndex + 1;
+
+      while (rowIndex < rowsCount) {
+        var rowHeight = 0;
+        var columnIndex = 0;
+        var i = void 0;
+
+        while (columnIndex < columnsCount && (i = rowIndex * columnsCount + columnIndex) < itemsCount) {
+          rowHeight = Math.max(rowHeight, this.getItemHeight(i) || this.getAverageItemHeight());
+          columnIndex++;
+        } // Add all "after" items height.
+
+
+        afterItemsHeight += this.getVerticalSpacing();
+        afterItemsHeight += rowHeight;
+        rowIndex++;
+      }
+
+      return afterItemsHeight;
+    }
+    /**
+     * Finds the indexes of the currently visible items.
+     * @return {object} `{ firstShownItemIndex: number, lastShownItemIndex: number, redoLayoutAfterMeasuringItemHeights: boolean }`
+     */
+
+  }, {
+    key: "getShownItemIndexes",
+    value: function getShownItemIndexes(_ref5) {
+      var listHeight = _ref5.listHeight,
+          itemsCount = _ref5.itemsCount,
+          visibleAreaIncludingMargins = _ref5.visibleAreaIncludingMargins,
+          listTopOffsetInsideScrollableContainer = _ref5.listTopOffsetInsideScrollableContainer;
+
+      if (this.bypass) {
+        return {
+          firstShownItemIndex: 0,
+          lastShownItemIndex: itemsCount - 1
+        };
+      } // Finds the indexes of the items that are currently visible
+      // (or close to being visible) in the scrollable container.
+      // For scrollable containers other than the main screen, it could also
+      // check the visibility of such scrollable container itself, because it
+      // might be not visible.
+      // If such kind of an optimization would hypothetically be implemented,
+      // then it would also require listening for "scroll" events on the screen.
+      // Overall, I suppose that such "actual visibility" feature would be
+      // a very minor optimization and not something I'd deal with.
+
+
+      return this.getItemIndexes(visibleAreaIncludingMargins.top, visibleAreaIncludingMargins.bottom, listTopOffsetInsideScrollableContainer, listHeight, itemsCount) || this.getNonVisibleListShownItemIndexes();
+    }
+  }, {
+    key: "showItemsFromTheStart",
+    value: function showItemsFromTheStart(layout) {
+      layout.firstShownItemIndex = 0;
+      layout.beforeItemsHeight = 0;
+    }
+  }]);
+
+  return Layout;
+}();
+
+
+var LAYOUT_REASON = {
+  SCROLL: 'scroll',
+  STOPPED_SCROLLING: 'stopped scrolling',
+  MANUAL: 'manual',
+  MOUNT: 'mount',
+  ITEM_HEIGHT_NOT_MEASURED: 'some item height wasn\'t measured',
+  RESIZE: 'resize',
+  ITEM_HEIGHT_CHANGED: 'item height changed',
+  ITEMS_CHANGED: 'items changed',
+  TOP_OFFSET_CHANGED: 'list top offset changed'
+};
+//# sourceMappingURL=Layout.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/Resize.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/Resize.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Resize)
+/* harmony export */ });
+/* harmony import */ var _Layout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Layout */ "./node_modules/virtual-scroller/modules/Layout.js");
+/* harmony import */ var _utility_debounce__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/debounce */ "./node_modules/virtual-scroller/modules/utility/debounce.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+var Resize =
+/*#__PURE__*/
+function () {
+  function Resize(_ref) {
+    var _this = this;
+
+    var bypass = _ref.bypass,
+        scrollableContainer = _ref.scrollableContainer,
+        getContainerElement = _ref.getContainerElement,
+        updateLayout = _ref.updateLayout,
+        resetStateAndLayout = _ref.resetStateAndLayout;
+
+    _classCallCheck(this, Resize);
+
+    _defineProperty(this, "onResize", (0,_utility_debounce__WEBPACK_IMPORTED_MODULE_0__.default)(function () {
+      // If `VirtualScroller` has been unmounted
+      // while `debounce()`'s `setTimeout()` was waiting, then exit.
+      if (!_this.isRendered) {
+        return;
+      }
+
+      var prevScrollableContainerWidth = _this.scrollableContainerWidth;
+      var prevScrollableContainerHeight = _this.scrollableContainerHeight;
+      _this.scrollableContainerWidth = _this.scrollableContainer.getWidth();
+      _this.scrollableContainerHeight = _this.scrollableContainer.getHeight();
+
+      if (_this.scrollableContainerWidth === prevScrollableContainerWidth) {
+        if (_this.scrollableContainerHeight === prevScrollableContainerHeight) {
+          // The dimensions of the container didn't change,
+          // so there's no need to re-layout anything.
+          return;
+        } else {
+          // Scrollable container height has changed,
+          // so just recalculate shown item indexes.
+          // No need to perform a re-layout from scratch.
+          _this.updateLayout({
+            reason: _Layout__WEBPACK_IMPORTED_MODULE_1__.LAYOUT_REASON.RESIZE
+          });
+        }
+      } else {
+        // Reset item heights, because if scrollable container's width (or height)
+        // has changed, then the list width (or height) most likely also has changed,
+        // and also some CSS `@media()` rules might have been added or removed.
+        // So re-render the list entirely.
+        _this.resetStateAndLayout();
+      }
+    }, SCROLLABLE_CONTAINER_RESIZE_DEBOUNCE_INTERVAL));
+
+    this.bypass = bypass;
+    this.scrollableContainer = scrollableContainer;
+    this.getContainerElement = getContainerElement;
+    this.updateLayout = updateLayout;
+    this.resetStateAndLayout = resetStateAndLayout;
+  }
+
+  _createClass(Resize, [{
+    key: "listen",
+    value: function listen() {
+      if (this.bypass) {
+        return;
+      }
+
+      this.isRendered = true;
+      this.scrollableContainerWidth = this.scrollableContainer.getWidth();
+      this.scrollableContainerHeight = this.scrollableContainer.getHeight();
+      this.scrollableContainerUnlistenResize = this.scrollableContainer.onResize(this.onResize, {
+        container: this.getContainerElement()
+      });
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.isRendered = false;
+
+      if (this.scrollableContainerUnlistenResize) {
+        this.scrollableContainerUnlistenResize();
+      }
+    }
+    /**
+     * On scrollable container resize.
+     */
+
+  }]);
+
+  return Resize;
+}();
+
+
+var SCROLLABLE_CONTAINER_RESIZE_DEBOUNCE_INTERVAL = 250;
+//# sourceMappingURL=Resize.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/RestoreScroll.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/RestoreScroll.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ RestoreScroll)
+/* harmony export */ });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var RestoreScroll =
+/*#__PURE__*/
+function () {
+  function RestoreScroll(_ref) {
+    var screen = _ref.screen,
+        getContainerElement = _ref.getContainerElement,
+        scrollBy = _ref.scrollBy;
+
+    _classCallCheck(this, RestoreScroll);
+
+    this.screen = screen;
+    this.getContainerElement = getContainerElement;
+    this.scrollBy = scrollBy;
+  }
+  /**
+   * `<ReactVirtualScroller/>` calls this method.
+   * @param  {any[]} previousItems
+   * @param  {any[]} newItems
+   * @param  {number} prependedItemsCount
+   */
+
+
+  _createClass(RestoreScroll, [{
+    key: "captureScroll",
+    value: function captureScroll(_ref2) {
+      var previousItems = _ref2.previousItems,
+          newItems = _ref2.newItems,
+          prependedItemsCount = _ref2.prependedItemsCount;
+
+      // If there were no items in the list
+      // then there's no point in restoring scroll position.
+      if (previousItems.length === 0) {
+        return;
+      } // If no items were prepended then no need to restore scroll position.
+
+
+      if (prependedItemsCount === 0) {
+        return;
+      }
+
+      var container = this.getContainerElement();
+      var firstItemTopOffset = this.screen.getChildElementTopOffset(container, 0); // The first item is supposed to be shown when the user clicks
+      // "Show previous items" button. If it isn't shown though,
+      // could still calculate the first item's top position using
+      // the values from `itemHeights` and `verticalSpacing`.
+      // But that would be a weird non-realistic scenario.
+      // if (firstShownItemIndex > 0) {
+      // 	let i = firstShownItemIndex - 1
+      // 	while (i >= 0) {
+      // 		firstItemTopOffset += itemHeights[i] + verticalSpacing
+      // 		i--
+      // 	}
+      // }
+      // If the scroll position has already been captured for restoration,
+      // then don't capture it the second time.
+      // Capturing scroll position could happen when using `<ReactVirtualScroller/>`
+      // because it calls `.captureScroll()` inside `ReactVirtualScroller.render()`
+      // which is followed by `<VirtualScroller/>`'s `.componentDidUpdate()`
+      // that also calls `.captureScroll()` with the same arguments,
+      // so that second call to `.captureScroll()` is ignored.
+      // Calling `.captureScroll()` inside `ReactVirtualScroller.render()`
+      // is done to prevent scroll Y position from jumping
+      // when showing the first page of the "Previous items".
+      // See the long section of comments in `ReactVirtualScroller.render()`
+      // method for more info on why is `.captureScroll()` called there.
+
+      if (this.restoreScrollAfterRenderValues && this.restoreScrollAfterRenderValues.previousItems === previousItems && this.restoreScrollAfterRenderValues.newItems === newItems) {
+        return;
+      }
+
+      this.restoreScrollAfterRenderValues = {
+        previousItems: previousItems,
+        newItems: newItems,
+        index: prependedItemsCount,
+        visibleAreaTop: firstItemTopOffset
+      };
+    }
+  }, {
+    key: "getAnchorItemIndex",
+    value: function getAnchorItemIndex() {
+      return this.restoreScrollAfterRenderValues.index;
+    }
+  }, {
+    key: "shouldRestoreScrollAfterRender",
+    value: function shouldRestoreScrollAfterRender() {
+      return this.restoreScrollAfterRenderValues !== undefined;
+    }
+  }, {
+    key: "getScrollDifference",
+    value: function getScrollDifference() {
+      var _this$restoreScrollAf = this.restoreScrollAfterRenderValues,
+          index = _this$restoreScrollAf.index,
+          visibleAreaTop = _this$restoreScrollAf.visibleAreaTop;
+      this.restoreScrollAfterRenderValues = undefined; // `firstShownItemIndex` is supposed to be `0` here.
+
+      var newVisibleAreaTop = this.screen.getChildElementTopOffset(this.getContainerElement(), index);
+      return newVisibleAreaTop - visibleAreaTop;
+    }
+  }]);
+
+  return RestoreScroll;
+}();
+
+
+//# sourceMappingURL=RestoreScroll.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/Scroll.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/Scroll.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Scroll)
+/* harmony export */ });
+/* harmony import */ var request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! request-animation-frame-timeout */ "./node_modules/request-animation-frame-timeout/modules/index.js");
+/* harmony import */ var _Layout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Layout */ "./node_modules/virtual-scroller/modules/Layout.js");
+/* harmony import */ var _utility_debug__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/debug */ "./node_modules/virtual-scroller/modules/utility/debug.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// For some weird reason, in Chrome, `setTimeout()` would lag up to a second (or more) behind.
+// Turns out, Chrome developers have deprecated `setTimeout()` API entirely without asking anyone.
+// Replacing `setTimeout()` with `requestAnimationFrame()` can work around that Chrome bug.
+// https://github.com/bvaughn/react-virtualized/issues/722
+
+
+
+
+var Scroll =
+/*#__PURE__*/
+function () {
+  function Scroll(_ref) {
+    var _this = this;
+
+    var bypass = _ref.bypass,
+        scrollableContainer = _ref.scrollableContainer,
+        updateLayout = _ref.updateLayout,
+        initialScrollPosition = _ref.initialScrollPosition,
+        onScrollPositionChange = _ref.onScrollPositionChange,
+        isImmediateLayoutScheduled = _ref.isImmediateLayoutScheduled,
+        hasNonRenderedItemsAtTheTop = _ref.hasNonRenderedItemsAtTheTop,
+        hasNonRenderedItemsAtTheBottom = _ref.hasNonRenderedItemsAtTheBottom,
+        getLatestLayoutVisibleAreaIncludingMargins = _ref.getLatestLayoutVisibleAreaIncludingMargins,
+        preserveScrollPositionOfTheBottomOfTheListOnMount = _ref.preserveScrollPositionOfTheBottomOfTheListOnMount;
+
+    _classCallCheck(this, Scroll);
+
+    _defineProperty(this, "updateScrollPosition", function () {
+      _this.onScrollPositionChange(_this.getScrollY());
+    });
+
+    _defineProperty(this, "onScroll", function () {
+      // Prefer not performing a re-layout while the user is scrolling (if possible).
+      // If the user doesn't scroll too far and then stops for a moment,
+      // then a mid-scroll re-layout could be delayed until such a brief stop:
+      // presumably, this results in better (smoother) scrolling performance,
+      // delaying the work to when it doesn't introduce any stutter or "jank".
+      // Reset `this.onUserStopsScrollingTimer` (will be re-created below).
+      _this.cancelOnUserStopsScrollingTimer(); // See whether rendering "new" previous/next items is required
+      // right now, or it can wait until the user stops scrolling.
+
+
+      var forceUpdate = // If the items have been rendered at least once
+      _this.getLatestLayoutVisibleAreaIncludingMargins() && ( // If the user has scrolled up past the extra "margin"
+      _this.getScrollY() < _this.getLatestLayoutVisibleAreaIncludingMargins().top && // and if there're any previous non-rendered items to render.
+      _this.hasNonRenderedItemsAtTheTop() || // If the user has scrolled down past the extra "margin"
+      _this.getScrollY() + _this.scrollableContainer.getHeight() > _this.getLatestLayoutVisibleAreaIncludingMargins().bottom && // and if there're any next non-rendered items to render.
+      _this.hasNonRenderedItemsAtTheBottom());
+
+      if (forceUpdate) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_1__.default)('The user has scrolled far enough: force re-layout');
+      } else {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_1__.default)('The user hasn\'t scrolled too much: delay re-layout');
+      }
+
+      if (!forceUpdate) {
+        // If a re-layout is already scheduled at the next "frame",
+        // don't schedule a "re-layout when user stops scrolling" timer.
+        if (_this.isImmediateLayoutScheduled()) {
+          return;
+        }
+
+        _this.onUserStopsScrollingTimer = (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.setTimeout)(function () {
+          _this.onUserStopsScrollingTimer = undefined;
+
+          _this.updateLayout({
+            reason: _Layout__WEBPACK_IMPORTED_MODULE_2__.LAYOUT_REASON.STOPPED_SCROLLING
+          });
+        }, // "scroll" events are usually dispatched every 16 milliseconds
+        // for 60fps refresh rate, so waiting for 100 milliseconds feels
+        // reasonable: that would be about 6 frames of inactivity period,
+        // which could mean that either the user has stopped scrolling
+        // (for a moment) or the browser is lagging and stuttering
+        // (skipping frames due to high load).
+        // If the user continues scrolling then this timeout is constantly
+        // refreshed (cancelled and then re-created).
+        WAIT_FOR_USER_TO_STOP_SCROLLING_TIMEOUT);
+        return;
+      }
+
+      _this.updateLayout({
+        reason: _Layout__WEBPACK_IMPORTED_MODULE_2__.LAYOUT_REASON.SCROLL
+      });
+    });
+
+    this.bypass = bypass;
+    this.scrollableContainer = scrollableContainer;
+    this.updateLayout = updateLayout;
+    this.initialScrollPosition = initialScrollPosition;
+    this.onScrollPositionChange = onScrollPositionChange;
+    this.isImmediateLayoutScheduled = isImmediateLayoutScheduled;
+    this.hasNonRenderedItemsAtTheTop = hasNonRenderedItemsAtTheTop;
+    this.hasNonRenderedItemsAtTheBottom = hasNonRenderedItemsAtTheBottom;
+    this.getLatestLayoutVisibleAreaIncludingMargins = getLatestLayoutVisibleAreaIncludingMargins;
+
+    if (preserveScrollPositionOfTheBottomOfTheListOnMount) {
+      if (scrollableContainer) {
+        this.preserveScrollPositionOfTheBottomOfTheListOnMount = {
+          scrollableContainerContentHeight: scrollableContainer.getContentHeight()
+        };
+      }
+    }
+  }
+
+  _createClass(Scroll, [{
+    key: "listen",
+    value: function listen() {
+      if (this.initialScrollPosition !== undefined) {
+        this.scrollToY(this.initialScrollPosition);
+      }
+
+      if (this.onScrollPositionChange) {
+        this.updateScrollPosition();
+        this.removeScrollPositionListener = this.scrollableContainer.addScrollListener(this.updateScrollPosition);
+      }
+
+      if (!this.bypass) {
+        this.removeScrollListener = this.scrollableContainer.addScrollListener(this.onScroll);
+      }
+
+      if (this.preserveScrollPositionOfTheBottomOfTheListOnMount) {
+        this.scrollToY(this.getScrollY() + (this.scrollableContainer.getContentHeight() - this.preserveScrollPositionOfTheBottomOfTheListOnMount.scrollableContainerContentHeight));
+      }
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (this.removeScrollPositionListener) {
+        this.removeScrollPositionListener();
+      }
+
+      if (this.removeScrollListener) {
+        this.removeScrollListener();
+      }
+
+      this.cancelOnUserStopsScrollingTimer();
+    }
+  }, {
+    key: "scrollToY",
+    value: function scrollToY(scrollY) {
+      this.scrollableContainer.scrollToY(scrollY);
+    }
+  }, {
+    key: "scrollByY",
+    value: function scrollByY(_scrollByY) {
+      this.scrollToY(this.getScrollY() + _scrollByY);
+    }
+  }, {
+    key: "getScrollY",
+    value: function getScrollY() {
+      return this.scrollableContainer.getScrollY();
+    }
+    /**
+     * Updates the current scroll Y position in state.
+     */
+
+  }, {
+    key: "cancelOnUserStopsScrollingTimer",
+    value: function cancelOnUserStopsScrollingTimer() {
+      if (this.onUserStopsScrollingTimer) {
+        (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.clearTimeout)(this.onUserStopsScrollingTimer);
+        this.onUserStopsScrollingTimer = undefined;
+      }
+    }
+  }, {
+    key: "onLayout",
+    value: function onLayout() {
+      // Cancel a "re-layout when user stops scrolling" timer.
+      this.cancelOnUserStopsScrollingTimer();
+    }
+  }, {
+    key: "getVisibleAreaBounds",
+
+    /**
+     * Returns visible area coordinates relative to the scrollable container.
+     * @return {object} `{ top: number, bottom: number }`
+     */
+    value: function getVisibleAreaBounds() {
+      var scrollY = this.getScrollY();
+      return {
+        // The first pixel of the screen.
+        top: scrollY,
+        // The pixel after the last pixel of the screen.
+        bottom: scrollY + this.scrollableContainer.getHeight()
+      };
+    }
+  }]);
+
+  return Scroll;
+}();
+
+
+var WAIT_FOR_USER_TO_STOP_SCROLLING_TIMEOUT = 100;
+//# sourceMappingURL=Scroll.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/VirtualScroller.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/VirtualScroller.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ VirtualScroller)
+/* harmony export */ });
+/* harmony import */ var request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! request-animation-frame-timeout */ "./node_modules/request-animation-frame-timeout/modules/index.js");
+/* harmony import */ var _DOM_tbody__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./DOM/tbody */ "./node_modules/virtual-scroller/modules/DOM/tbody.js");
+/* harmony import */ var _DOM_RenderingEngine__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./DOM/RenderingEngine */ "./node_modules/virtual-scroller/modules/DOM/RenderingEngine.js");
+/* harmony import */ var _DOM_WaitForStylesToLoad__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./DOM/WaitForStylesToLoad */ "./node_modules/virtual-scroller/modules/DOM/WaitForStylesToLoad.js");
+/* harmony import */ var _Layout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Layout */ "./node_modules/virtual-scroller/modules/Layout.js");
+/* harmony import */ var _Resize__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Resize */ "./node_modules/virtual-scroller/modules/Resize.js");
+/* harmony import */ var _Scroll__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Scroll */ "./node_modules/virtual-scroller/modules/Scroll.js");
+/* harmony import */ var _RestoreScroll__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./RestoreScroll */ "./node_modules/virtual-scroller/modules/RestoreScroll.js");
+/* harmony import */ var _ItemHeights__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ItemHeights */ "./node_modules/virtual-scroller/modules/ItemHeights.js");
+/* harmony import */ var _getItemsDiff__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./getItemsDiff */ "./node_modules/virtual-scroller/modules/getItemsDiff.js");
+/* harmony import */ var _getVerticalSpacing__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./getVerticalSpacing */ "./node_modules/virtual-scroller/modules/getVerticalSpacing.js");
+/* harmony import */ var _utility_debug__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/debug */ "./node_modules/virtual-scroller/modules/utility/debug.js");
+/* harmony import */ var _utility_shallowEqual__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/shallowEqual */ "./node_modules/virtual-scroller/modules/utility/shallowEqual.js");
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// For some weird reason, in Chrome, `setTimeout()` would lag up to a second (or more) behind.
+// Turns out, Chrome developers have deprecated `setTimeout()` API entirely without asking anyone.
+// Replacing `setTimeout()` with `requestAnimationFrame()` can work around that Chrome bug.
+// https://github.com/bvaughn/react-virtualized/issues/722
+
+
+
+
+
+
+
+
+
+
+ // import getItemCoordinates from './getItemCoordinates'
+
+
+
+
+var VirtualScroller =
+/*#__PURE__*/
+function () {
+  /**
+   * @param  {function} getContainerElement — Returns the container DOM `Element`.
+   * @param  {any[]} items — The list of items.
+   * @param  {Object} [options] — See README.md.
+   * @return {VirtualScroller}
+   */
+  function VirtualScroller(getContainerElement, items) {
+    var _this = this;
+
+    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    _classCallCheck(this, VirtualScroller);
+
+    _defineProperty(this, "getListTopOffsetInsideScrollableContainer", function () {
+      var listTopOffset = _this.scrollableContainer.getTopOffset(_this.getContainerElement());
+
+      _this.waitForStylesToLoad.onGotListTopOffset(listTopOffset);
+
+      return listTopOffset;
+    });
+
+    _defineProperty(this, "willUpdateState", function (newState, prevState) {
+      // Ignore setting initial state.
+      if (!prevState) {
+        return;
+      } // This function isn't currently used.
+      // Was previously used to capture scroll position in order to
+      // restore it later after the new state is rendered.
+
+    });
+
+    _defineProperty(this, "didUpdateState", function (prevState) {
+      var newState = _this.getState();
+
+      if (_this.onStateChange) {
+        if (!(0,_utility_shallowEqual__WEBPACK_IMPORTED_MODULE_1__.default)(newState, prevState)) {
+          _this.onStateChange(newState, prevState);
+        }
+      } // Ignore setting initial state.
+
+
+      if (!prevState) {
+        return;
+      }
+
+      if (!_this.isRendered) {
+        return;
+      }
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Rendered ~');
+      _this.newItemsPending = undefined;
+      _this.layoutResetPending = undefined;
+      var redoLayoutReason = _this.redoLayoutReason;
+      _this.redoLayoutReason = undefined;
+      var previousItems = prevState.items;
+      var newItems = newState.items;
+
+      if (newItems !== previousItems) {
+        var layoutNeedsReCalculating = true;
+
+        var itemsDiff = _this.getItemsDiff(previousItems, newItems); // If it's an "incremental" update.
+
+
+        if (itemsDiff) {
+          var prependedItemsCount = itemsDiff.prependedItemsCount,
+              appendedItemsCount = itemsDiff.appendedItemsCount;
+
+          if (prependedItemsCount > 0) {
+            // The call to `.onPrepend()` must precede
+            // the call to `.measureItemHeights()`
+            // which is called in `.onRendered()`.
+            _this.itemHeights.onPrepend(prependedItemsCount);
+
+            if (_this.restoreScroll.shouldRestoreScrollAfterRender()) {
+              layoutNeedsReCalculating = false;
+              (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Restore Scroll Position ~');
+
+              var scrollByY = _this.restoreScroll.getScrollDifference();
+
+              if (scrollByY) {
+                (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Scroll down by', scrollByY);
+
+                _this.scroll.scrollByY(scrollByY);
+              } else {
+                (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Scroll position hasn\'t changed');
+              }
+            }
+          }
+        } else {
+          _this.itemHeights.reset();
+
+          _this.itemHeights.initialize(_this.getState().itemHeights);
+        }
+
+        if (layoutNeedsReCalculating) {
+          redoLayoutReason = _Layout__WEBPACK_IMPORTED_MODULE_3__.LAYOUT_REASON.ITEMS_CHANGED;
+        }
+      } // Call `.onRendered()` if shown items configuration changed.
+
+
+      if (newState.firstShownItemIndex !== prevState.firstShownItemIndex || newState.lastShownItemIndex !== prevState.lastShownItemIndex || newState.items !== prevState.items) {
+        _this.onRenderedNewLayout();
+      }
+
+      if (redoLayoutReason) {
+        return _this.redoLayoutRightAfterRender({
+          reason: redoLayoutReason
+        });
+      }
+    });
+
+    _defineProperty(this, "updateShownItemIndexes", function () {
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Layout results ' + (_this.bypass ? '(bypass) ' : '') + '~');
+
+      var visibleAreaIncludingMargins = _this.getVisibleAreaBoundsIncludingMargins();
+
+      _this.latestLayoutVisibleAreaIncludingMargins = visibleAreaIncludingMargins;
+
+      var listTopOffsetInsideScrollableContainer = _this.getListTopOffsetInsideScrollableContainer(); // Get shown item indexes.
+
+
+      var _this$layout$getShown = _this.layout.getShownItemIndexes({
+        listHeight: _this.screen.getElementHeight(_this.getContainerElement()),
+        itemsCount: _this.getItemsCount(),
+        visibleAreaIncludingMargins: visibleAreaIncludingMargins,
+        listTopOffsetInsideScrollableContainer: listTopOffsetInsideScrollableContainer
+      }),
+          firstShownItemIndex = _this$layout$getShown.firstShownItemIndex,
+          lastShownItemIndex = _this$layout$getShown.lastShownItemIndex,
+          redoLayoutAfterMeasuringItemHeights = _this$layout$getShown.redoLayoutAfterMeasuringItemHeights; // If scroll position is scheduled to be restored after render,
+      // then the "anchor" item must be rendered, and all of the prepended
+      // items before it, all in a single pass. This way, all of the
+      // prepended items' heights could be measured right after the render
+      // has finished, and the scroll position can then be immediately restored.
+
+
+      if (_this.restoreScroll.shouldRestoreScrollAfterRender()) {
+        if (lastShownItemIndex < _this.restoreScroll.getAnchorItemIndex()) {
+          lastShownItemIndex = _this.restoreScroll.getAnchorItemIndex();
+        } // `firstShownItemIndex` is always `0` when prepending items.
+        // And `lastShownItemIndex` always covers all prepended items in this case.
+        // None of the prepended items have been rendered before,
+        // so their heights are unknown. The code at the start of this function
+        // did therefore set `redoLayoutAfterMeasuringItemHeights` to `true`
+        // in order to render just the first prepended item in order to
+        // measure it, and only then make a decision on how many other
+        // prepended items to render. But since we've instructed the code
+        // to show all of the prepended items at once, there's no need to
+        // "redo layout after render". Additionally, if layout was re-done
+        // after render, then there would be a short interval of visual
+        // "jitter" due to the scroll position not being restored because it'd
+        // wait for the second layout to finish instead of being restored
+        // right after the first one.
+
+
+        redoLayoutAfterMeasuringItemHeights = false;
+      } // Measure "before" items height.
+
+
+      var beforeItemsHeight = _this.layout.getBeforeItemsHeight(firstShownItemIndex, lastShownItemIndex); // Measure "after" items height.
+
+
+      var afterItemsHeight = _this.layout.getAfterItemsHeight(firstShownItemIndex, lastShownItemIndex, _this.getItemsCount()); // Debugging.
+
+
+      if (_this._getColumnsCount) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Columns count', _this.getColumnsCount());
+      }
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('First shown item index', firstShownItemIndex);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Last shown item index', lastShownItemIndex);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Before items height', beforeItemsHeight);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('After items height (actual or estimated)', afterItemsHeight);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Average item height (calculated on previous render)', _this.itemHeights.getAverage());
+
+      if ((0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.isDebug)()) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Item heights', _this.getState().itemHeights.slice());
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Item states', _this.getState().itemStates.slice());
+      }
+
+      if (redoLayoutAfterMeasuringItemHeights) {
+        // `this.redoLayoutReason` will be detected in `didUpdateState()`.
+        // `didUpdateState()` is triggered by `this.setState()` below.
+        _this.redoLayoutReason = _Layout__WEBPACK_IMPORTED_MODULE_3__.LAYOUT_REASON.ITEM_HEIGHT_NOT_MEASURED;
+      } // Validate the heights of items to be hidden on next render.
+      // For example, a user could click a "Show more" button,
+      // or an "Expand YouTube video" button, which would result
+      // in the actual height of the list item being different
+      // from what has been initially measured in `this.itemHeights[i]`,
+      // if the developer didn't call `.onItemStateChange()` and `.onItemHeightChange(i)`.
+
+
+      _this.validateWillBeHiddenItemHeights(firstShownItemIndex, lastShownItemIndex); // Optionally preload items to be rendered.
+
+
+      _this.onBeforeShowItems(_this.getState().items, _this.getState().itemHeights, firstShownItemIndex, lastShownItemIndex); // Render.
+
+
+      _this.setState({
+        firstShownItemIndex: firstShownItemIndex,
+        lastShownItemIndex: lastShownItemIndex,
+        beforeItemsHeight: beforeItemsHeight,
+        afterItemsHeight: afterItemsHeight // // Average item height is stored in state to differentiate between
+        // // the initial state and "anything has been measured already" state.
+        // averageItemHeight: this.itemHeights.getAverage()
+
+      });
+    });
+
+    _defineProperty(this, "onUpdateShownItemIndexes", function (_ref) {
+      var reason = _ref.reason;
+
+      // If there're no items then there's no need to re-layout anything.
+      if (_this.getItemsCount() === 0) {
+        return;
+      } // Cancel a "re-layout when user stops scrolling" timer.
+
+
+      _this.scroll.onLayout(); // Cancel a re-layout that is scheduled to run at the next "frame",
+      // because a re-layout will be performed right now.
+
+
+      if (_this.layoutTimer) {
+        (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.clearTimeout)(_this.layoutTimer);
+        _this.layoutTimer = undefined;
+      } // Perform a re-layout.
+
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)("~ Calculate Layout (on ".concat(reason, ") ~"));
+
+      _this.updateShownItemIndexes();
+    });
+
+    _defineProperty(this, "updateLayout", function () {
+      return _this.onUpdateShownItemIndexes({
+        reason: _Layout__WEBPACK_IMPORTED_MODULE_3__.LAYOUT_REASON.MANUAL
+      });
+    });
+
+    _defineProperty(this, "layout", function () {
+      return _this.updateLayout();
+    });
+
+    var getState = options.getState,
+        setState = options.setState,
+        onStateChange = options.onStateChange,
+        customState = options.customState,
+        preserveScrollPositionAtBottomOnMount = options.preserveScrollPositionAtBottomOnMount,
+        preserveScrollPositionOfTheBottomOfTheListOnMount = options.preserveScrollPositionOfTheBottomOfTheListOnMount,
+        initialScrollPosition = options.initialScrollPosition,
+        onScrollPositionChange = options.onScrollPositionChange,
+        measureItemsBatchSize = options.measureItemsBatchSize,
+        getScrollableContainer = options.getScrollableContainer,
+        getColumnsCount = options.getColumnsCount,
+        getItemId = options.getItemId,
+        tbody = options.tbody,
+        _useTimeoutInRenderLoop = options._useTimeoutInRenderLoop;
+    var bypass = options.bypass,
+        estimatedItemHeight = options.estimatedItemHeight,
+        onItemInitialRender = options.onItemInitialRender,
+        onItemFirstRender = options.onItemFirstRender,
+        scrollableContainer = options.scrollableContainer,
+        state = options.state,
+        renderingEngine = options.renderingEngine;
+    (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Initialize ~'); // If `state` is passed then use `items` from `state`
+    // instead of the `items` argument.
+
+    if (state) {
+      items = state.items;
+    } // `getScrollableContainer` option is deprecated.
+    // Use `scrollableContainer` instead.
+
+
+    if (!scrollableContainer && getScrollableContainer) {
+      scrollableContainer = getScrollableContainer();
+    } // Could support non-DOM rendering engines.
+    // For example, React Native, `<canvas/>`, etc.
+
+
+    if (!renderingEngine) {
+      renderingEngine = _DOM_RenderingEngine__WEBPACK_IMPORTED_MODULE_4__.default;
+    }
+
+    this.screen = renderingEngine.createScreen();
+    this.scrollableContainer = renderingEngine.createScrollableContainer(scrollableContainer); // if (margin === undefined) {
+    // 	// Renders items which are outside of the screen by this "margin".
+    // 	// Is the screen height by default: seems to be the optimal value
+    // 	// for "Page Up" / "Page Down" navigation and optimized mouse wheel scrolling.
+    // 	margin = this.scrollableContainer ? this.scrollableContainer.getHeight() : 0
+    // }
+    // Work around `<tbody/>` not being able to have `padding`.
+    // https://gitlab.com/catamphetamine/virtual-scroller/-/issues/1
+
+    if (tbody) {
+      if (renderingEngine.name !== 'DOM') {
+        throw new Error('`tbody` option is only supported for DOM rendering engine');
+      }
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ <tbody/> detected ~');
+      this.tbody = true;
+
+      if (!(0,_DOM_tbody__WEBPACK_IMPORTED_MODULE_5__.supportsTbody)()) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ <tbody/> not supported ~');
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.reportError)(_DOM_tbody__WEBPACK_IMPORTED_MODULE_5__.BROWSER_NOT_SUPPORTED_ERROR);
+        bypass = true;
+      }
+    }
+
+    if (bypass) {
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ "bypass" mode ~');
+    } // In `bypass` mode, `VirtualScroller` doesn't wait
+    // for the user to scroll down to render all items:
+    // instead, it renders all items right away, as if
+    // the list is rendered without using `VirtualScroller`.
+    // It was added just to measure how much is the
+    // performance difference between using a `VirtualScroller`
+    // and not using a `VirtualScroller`.
+    // It turned out that unmounting large React component trees
+    // is a very long process, so `VirtualScroller` does seem to
+    // make sense when used in a React application.
+
+
+    this.bypass = bypass; // this.bypassBatchSize = bypassBatchSize || 10
+    // Using `setTimeout()` in render loop is a workaround
+    // for avoiding a React error message:
+    // "Maximum update depth exceeded.
+    //  This can happen when a component repeatedly calls
+    //  `.setState()` inside `componentWillUpdate()` or `componentDidUpdate()`.
+    //  React limits the number of nested updates to prevent infinite loops."
+
+    this._useTimeoutInRenderLoop = _useTimeoutInRenderLoop;
+
+    if (getItemId) {
+      this.isItemEqual = function (a, b) {
+        return getItemId(a) === getItemId(b);
+      };
+    } else {
+      this.isItemEqual = function (a, b) {
+        return a === b;
+      };
+    }
+
+    this.initialItems = items; // this.margin = margin
+
+    this.onStateChange = onStateChange;
+    this._getColumnsCount = getColumnsCount;
+
+    if (onItemInitialRender) {
+      this.onItemInitialRender = onItemInitialRender;
+    } // `onItemFirstRender(i)` is deprecated, use `onItemInitialRender(item)` instead.
+    else if (onItemFirstRender) {
+        this.onItemInitialRender = function (item) {
+          console.warn("[virtual-scroller] `onItemFirstRender(i)` is deprecated, use `onItemInitialRender(item)` instead.");
+
+          var _this$getState = _this.getState(),
+              items = _this$getState.items;
+
+          var i = items.indexOf(item); // The `item` could also be non-found due to the inconsistency bug:
+          // The reason is that `i` can be non-consistent with the `items`
+          // passed to `<VirtualScroller/>` in React due to `setState()` not being
+          // instanteneous: when new `items` are passed to `<VirtualScroller/>`,
+          // `VirtualScroller.setState({ items })` is called, and if `onItemFirstRender(i)`
+          // is called after the aforementioned `setState()` is called but before it finishes,
+          // `i` would point to an index in "previous" `items` while the application
+          // would assume that `i` points to an index in the "new" `items`,
+          // resulting in an incorrect item being assumed by the application
+          // or even in an "array index out of bounds" error.
+
+          if (i >= 0) {
+            onItemFirstRender(i);
+          }
+        };
+      }
+
+    (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Items count', items.length);
+
+    if (estimatedItemHeight) {
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Estimated item height', estimatedItemHeight);
+    }
+
+    if (setState) {
+      this.getState = getState;
+
+      this.setState = function (state) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Set state', state);
+        setState(state, {
+          willUpdateState: _this.willUpdateState,
+          didUpdateState: _this.didUpdateState
+        });
+      };
+    } else {
+      this.getState = function () {
+        return _this.state;
+      };
+
+      this.setState = function (state) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Set state', state);
+
+        var prevState = _this.getState(); // Because this variant of `.setState()` is "synchronous" (immediate),
+        // it can be written like `...prevState`, and no state updates would be lost.
+        // But if it was "asynchronous" (not immediate), then `...prevState`
+        // wouldn't work in all cases, because it could be stale in cases
+        // when more than a single `setState()` call is made before
+        // the state actually updates, making `prevState` stale.
+
+
+        var newState = _objectSpread({}, prevState, state);
+
+        _this.willUpdateState(newState, prevState);
+
+        _this.state = newState;
+
+        _this.didUpdateState(prevState);
+      };
+    }
+
+    if (state) {
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Initial state (passed)', state);
+    } // Sometimes, when `new VirtualScroller()` instance is created,
+    // `getContainerElement()` might not be ready to return the "container" DOM Element yet
+    // (for example, because it's not rendered yet). That's the reason why it's a getter function.
+    // For example, in React `<VirtualScroller/>` component, a `VirtualScroller`
+    // instance is created in the React component's `constructor()`, and at that time
+    // the container Element is not yet available. The container Element is available
+    // in `componentDidMount()`, but `componentDidMount()` is not executed on server,
+    // which would mean that React `<VirtualScroller/>` wouldn't render at all
+    // on server side, while with the `getContainerElement()` approach, on server side,
+    // it still "renders" a list with a predefined amount of items in it by default.
+    // (`initiallyRenderedItemsCount`, or `1`).
+
+
+    this.getContainerElement = getContainerElement; // Remove any accidental text nodes from container (like whitespace).
+    // Also guards against cases when someone accidentally tries
+    // using `VirtualScroller` on a non-empty element.
+
+    if (getContainerElement()) {
+      this.screen.clearElement(getContainerElement());
+    }
+
+    this.itemHeights = new _ItemHeights__WEBPACK_IMPORTED_MODULE_6__.default(this.screen, this.getContainerElement, function (i) {
+      return _this.getState().itemHeights[i];
+    }, function (i, height) {
+      return _this.getState().itemHeights[i] = height;
+    }); // Initialize `ItemHeights` from the initially passed `state`.
+
+    if (state) {
+      this.itemHeights.initialize(state.itemHeights);
+    }
+
+    this.layout = new _Layout__WEBPACK_IMPORTED_MODULE_3__.default({
+      bypass: bypass,
+      estimatedItemHeight: estimatedItemHeight,
+      measureItemsBatchSize: measureItemsBatchSize === undefined ? 50 : measureItemsBatchSize,
+      getVerticalSpacing: function getVerticalSpacing() {
+        return _this.getVerticalSpacing();
+      },
+      getColumnsCount: function getColumnsCount() {
+        return _this.getColumnsCount();
+      },
+      getItemHeight: function getItemHeight(i) {
+        return _this.getState().itemHeights[i];
+      },
+      getAverageItemHeight: function getAverageItemHeight() {
+        return _this.itemHeights.getAverage();
+      }
+    });
+    this.resize = new _Resize__WEBPACK_IMPORTED_MODULE_7__.default({
+      bypass: bypass,
+      scrollableContainer: this.scrollableContainer,
+      getContainerElement: this.getContainerElement,
+      updateLayout: function updateLayout(_ref2) {
+        var reason = _ref2.reason;
+        return _this.onUpdateShownItemIndexes({
+          reason: reason
+        });
+      },
+      resetStateAndLayout: function resetStateAndLayout() {
+        // Reset item heights, because if scrollable container's width (or height)
+        // has changed, then the list width (or height) most likely also has changed,
+        // and also some CSS `@media()` rules might have been added or removed.
+        // So re-render the list entirely.
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Scrollable container size changed, re-measure item heights. ~');
+        _this.redoLayoutReason = _Layout__WEBPACK_IMPORTED_MODULE_3__.LAYOUT_REASON.RESIZE; // `this.layoutResetPending` flag will be cleared in `didUpdateState()`.
+
+        _this.layoutResetPending = true;
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Reset state'); // Calling `this.setState(state)` will trigger `didUpdateState()`.
+        // `didUpdateState()` will detect `this.redoLayoutReason`.
+
+        _this.setState(_this.getInitialLayoutState(_this.newItemsPending || _this.getState().items));
+      }
+    });
+
+    if (preserveScrollPositionAtBottomOnMount) {
+      console.warn('[virtual-scroller] `preserveScrollPositionAtBottomOnMount` option/property has been renamed to `preserveScrollPositionOfTheBottomOfTheListOnMount`');
+    }
+
+    this.preserveScrollPositionOfTheBottomOfTheListOnMount = preserveScrollPositionOfTheBottomOfTheListOnMount || preserveScrollPositionAtBottomOnMount;
+    this.scroll = new _Scroll__WEBPACK_IMPORTED_MODULE_8__.default({
+      bypass: this.bypass,
+      scrollableContainer: this.scrollableContainer,
+      updateLayout: function updateLayout(_ref3) {
+        var reason = _ref3.reason;
+        return _this.onUpdateShownItemIndexes({
+          reason: reason
+        });
+      },
+      initialScrollPosition: initialScrollPosition,
+      onScrollPositionChange: onScrollPositionChange,
+      isImmediateLayoutScheduled: function isImmediateLayoutScheduled() {
+        return _this.layoutTimer;
+      },
+      hasNonRenderedItemsAtTheTop: function hasNonRenderedItemsAtTheTop() {
+        return _this.getState().firstShownItemIndex > 0;
+      },
+      hasNonRenderedItemsAtTheBottom: function hasNonRenderedItemsAtTheBottom() {
+        return _this.getState().lastShownItemIndex < _this.getItemsCount() - 1;
+      },
+      getLatestLayoutVisibleAreaIncludingMargins: function getLatestLayoutVisibleAreaIncludingMargins() {
+        return _this.latestLayoutVisibleAreaIncludingMargins;
+      },
+      preserveScrollPositionOfTheBottomOfTheListOnMount: this.preserveScrollPositionOfTheBottomOfTheListOnMount
+    });
+    this.restoreScroll = new _RestoreScroll__WEBPACK_IMPORTED_MODULE_9__.default({
+      screen: this.screen,
+      getContainerElement: this.getContainerElement
+    });
+    this.waitForStylesToLoad = new _DOM_WaitForStylesToLoad__WEBPACK_IMPORTED_MODULE_10__.default({
+      updateLayout: function updateLayout(_ref4) {
+        var reason = _ref4.reason;
+        return _this.onUpdateShownItemIndexes({
+          reason: reason
+        });
+      },
+      getListTopOffsetInsideScrollableContainer: this.getListTopOffsetInsideScrollableContainer
+    });
+    this.setState(state || this.getInitialState(customState));
+  }
+  /**
+   * Returns the initial state of the `VirtualScroller`.
+   * @param  {object} [customState] — Any additional "custom" state may be stored in `VirtualScroller`'s state. For example, React implementation stores item "refs" as "custom" state.
+   * @return {object}
+   */
+
+
+  _createClass(VirtualScroller, [{
+    key: "getInitialState",
+    value: function getInitialState(customState) {
+      var items = this.initialItems;
+
+      var state = _objectSpread({}, customState, this.getInitialLayoutState(items), {
+        items: items,
+        itemStates: new Array(items.length)
+      });
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Initial state (autogenerated)', state);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('First shown item index', state.firstShownItemIndex);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Last shown item index', state.lastShownItemIndex);
+      return state;
+    }
+  }, {
+    key: "getInitialLayoutValues",
+    value: function getInitialLayoutValues(_ref5) {
+      var itemsCount = _ref5.itemsCount,
+          bypass = _ref5.bypass;
+      return this.layout.getInitialLayoutValues({
+        bypass: bypass,
+        itemsCount: itemsCount,
+        visibleAreaHeightIncludingMargins: this.scrollableContainer && 2 * this.getMargin() + this.scrollableContainer.getHeight()
+      });
+    }
+  }, {
+    key: "getInitialLayoutState",
+    value: function getInitialLayoutState(items) {
+      var itemsCount = items.length;
+
+      var _this$getInitialLayou = this.getInitialLayoutValues({
+        itemsCount: itemsCount,
+        bypass: this.preserveScrollPositionOfTheBottomOfTheListOnMount
+      }),
+          firstShownItemIndex = _this$getInitialLayou.firstShownItemIndex,
+          lastShownItemIndex = _this$getInitialLayou.lastShownItemIndex,
+          beforeItemsHeight = _this$getInitialLayou.beforeItemsHeight,
+          afterItemsHeight = _this$getInitialLayou.afterItemsHeight;
+
+      var itemHeights = new Array(itemsCount); // Optionally preload items to be rendered.
+
+      this.onBeforeShowItems(items, itemHeights, firstShownItemIndex, lastShownItemIndex); // This "initial" state object must include all possible state properties
+      // because `this.setState()` gets called with this state on window resize,
+      // when `VirtualScroller` gets reset.
+      // Item states aren't included here because the state of all items should be
+      // preserved on window resize.
+
+      return {
+        itemHeights: itemHeights,
+        columnsCount: this._getColumnsCount ? this._getColumnsCount(this.scrollableContainer) : undefined,
+        verticalSpacing: undefined,
+        firstShownItemIndex: firstShownItemIndex,
+        lastShownItemIndex: lastShownItemIndex,
+        beforeItemsHeight: beforeItemsHeight,
+        afterItemsHeight: afterItemsHeight
+      };
+    }
+  }, {
+    key: "getVerticalSpacing",
+    value: function getVerticalSpacing() {
+      return this.getState() && this.getState().verticalSpacing || 0;
+    }
+  }, {
+    key: "getColumnsCount",
+    value: function getColumnsCount() {
+      return this.getState() && this.getState().columnsCount || 1;
+    }
+  }, {
+    key: "getItemsCount",
+    value: function getItemsCount() {
+      return this.getState().items.length;
+    }
+  }, {
+    key: "getMargin",
+    value: function getMargin() {
+      // `VirtualScroller` also items that are outside of the screen
+      // by the amount of this "render ahead margin" (both on top and bottom).
+      // The default "render ahead margin" is equal to the screen height:
+      // this seems to be the optimal value for "Page Up" / "Page Down" navigation
+      // and optimized mouse wheel scrolling (a user is unlikely to continuously
+      // scroll past the height of a screen, and when they stop scrolling,
+      // the list is re-rendered).
+      var renderAheadMarginRatio = 1; // in scrollable container heights.
+
+      return this.scrollableContainer.getHeight() * renderAheadMarginRatio;
+    }
+    /**
+     * Calls `onItemFirstRender()` for items that haven't been
+     * "seen" previously.
+     * @param  {any[]} items
+     * @param  {number[]} itemHeights
+     * @param  {number} firstShownItemIndex
+     * @param  {number} lastShownItemIndex
+     */
+
+  }, {
+    key: "onBeforeShowItems",
+    value: function onBeforeShowItems(items, itemHeights, firstShownItemIndex, lastShownItemIndex) {
+      if (this.onItemInitialRender) {
+        var i = firstShownItemIndex;
+
+        while (i <= lastShownItemIndex) {
+          if (itemHeights[i] === undefined) {
+            this.onItemInitialRender(items[i]);
+          }
+
+          i++;
+        }
+      }
+    }
+  }, {
+    key: "onMount",
+    value: function onMount() {
+      console.warn('[virtual-scroller] `.onMount()` instance method name is deprecated, use `.listen()` instance method name instead.');
+      this.listen();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      console.warn('[virtual-scroller] `.render()` instance method name is deprecated, use `.listen()` instance method name instead.');
+      this.listen();
+    }
+    /**
+     * Should be invoked after a "container" DOM Element is mounted (inserted into the DOM tree).
+     */
+
+  }, {
+    key: "listen",
+    value: function listen() {
+      if (this.isRendered === false) {
+        throw new Error('[virtual-scroller] Can\'t restart a `VirtualScroller` after it has been stopped');
+      }
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Rendered (initial) ~'); // `this.isRendered = true` should be the first statement in this function,
+      // otherwise `DOMVirtualScroller` would enter an infinite re-render loop.
+
+      this.isRendered = true;
+      this.onRenderedNewLayout();
+      this.resize.listen();
+      this.scroll.listen(); // Work around `<tbody/>` not being able to have `padding`.
+      // https://gitlab.com/catamphetamine/virtual-scroller/-/issues/1
+
+      if (this.tbody) {
+        (0,_DOM_tbody__WEBPACK_IMPORTED_MODULE_5__.addTbodyStyles)(this.getContainerElement());
+      }
+
+      if (this.preserveScrollPositionOfTheBottomOfTheListOnMount) {// In this case, all items are shown, so there's no need to call
+        // `this.onUpdateShownItemIndexes()` after the initial render.
+      } else {
+        this.onUpdateShownItemIndexes({
+          reason: _Layout__WEBPACK_IMPORTED_MODULE_3__.LAYOUT_REASON.MOUNT
+        });
+      }
+    }
+  }, {
+    key: "onRenderedNewLayout",
+    value: function onRenderedNewLayout() {
+      // Update item vertical spacing.
+      this.measureVerticalSpacing(); // Measure "newly shown" item heights.
+      // Also re-validate already measured items' heights.
+
+      this.itemHeights.measureItemHeights(this.getState().firstShownItemIndex, this.getState().lastShownItemIndex); // Update `<tbody/>` `padding`.
+      // (`<tbody/>` is different in a way that it can't have `margin`, only `padding`).
+      // https://gitlab.com/catamphetamine/virtual-scroller/-/issues/1
+
+      if (this.tbody) {
+        (0,_DOM_tbody__WEBPACK_IMPORTED_MODULE_5__.setTbodyPadding)(this.getContainerElement(), this.getState().beforeItemsHeight, this.getState().afterItemsHeight);
+      }
+    }
+  }, {
+    key: "getVisibleAreaBoundsIncludingMargins",
+    value: function getVisibleAreaBoundsIncludingMargins() {
+      var visibleArea = this.scroll.getVisibleAreaBounds();
+      visibleArea.top -= this.getMargin();
+      visibleArea.bottom += this.getMargin();
+      return visibleArea;
+    }
+    /**
+     * Returns the list's top offset relative to the scrollable container's top edge.
+     * @return {number}
+     */
+
+  }, {
+    key: "onUnmount",
+    value: function onUnmount() {
+      console.warn('[virtual-scroller] `.onUnmount()` instance method name is deprecated, use `.stop()` instance method name instead.');
+      this.stop();
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      console.warn('[virtual-scroller] `.destroy()` instance method name is deprecated, use `.stop()` instance method name instead.');
+      this.stop();
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.isRendered = false;
+      this.resize.stop();
+      this.scroll.stop();
+      this.waitForStylesToLoad.stop();
+
+      if (this.layoutTimer) {
+        (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.clearTimeout)(this.layoutTimer);
+        this.layoutTimer = undefined;
+      }
+    }
+    /**
+     * Should be called right before `state` is updated.
+     * @param  {object} prevState
+     * @param  {object} newState
+     */
+
+  }, {
+    key: "redoLayoutRightAfterRender",
+    value: function redoLayoutRightAfterRender(_ref6) {
+      var _this2 = this;
+
+      var reason = _ref6.reason;
+
+      // In React, `setTimeout()` is used to prevent a React error:
+      // "Maximum update depth exceeded.
+      //  This can happen when a component repeatedly calls
+      //  `.setState()` inside `componentWillUpdate()` or `componentDidUpdate()`.
+      //  React limits the number of nested updates to prevent infinite loops."
+      if (this._useTimeoutInRenderLoop) {
+        // Cancel a previously scheduled re-layout.
+        if (this.layoutTimer) {
+          (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.clearTimeout)(this.layoutTimer);
+        } // Schedule a new re-layout.
+
+
+        this.layoutTimer = (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.setTimeout)(function () {
+          _this2.layoutTimer = undefined;
+
+          _this2.onUpdateShownItemIndexes({
+            reason: reason
+          });
+        }, 0);
+      } else {
+        this.onUpdateShownItemIndexes({
+          reason: reason
+        });
+      }
+    }
+  }, {
+    key: "measureVerticalSpacing",
+    value: function measureVerticalSpacing() {
+      if (this.getState().verticalSpacing === undefined) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Measure item vertical spacing ~');
+        var verticalSpacing = (0,_getVerticalSpacing__WEBPACK_IMPORTED_MODULE_11__.default)({
+          container: this.getContainerElement(),
+          screen: this.screen
+        });
+
+        if (verticalSpacing === undefined) {
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Not enough items rendered to measure vertical spacing');
+        } else {
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Item vertical spacing', verticalSpacing);
+          this.setState({
+            verticalSpacing: verticalSpacing
+          });
+        }
+      }
+    }
+  }, {
+    key: "remeasureItemHeight",
+    value: function remeasureItemHeight(i) {
+      var _this$getState2 = this.getState(),
+          firstShownItemIndex = _this$getState2.firstShownItemIndex;
+
+      return this.itemHeights.remeasureItemHeight(i, firstShownItemIndex);
+    }
+  }, {
+    key: "onItemStateChange",
+    value: function onItemStateChange(i, itemState) {
+      if ((0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.isDebug)()) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Item state changed ~');
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Item', i);
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Previous state' + '\n' + JSON.stringify(this.getState().itemStates[i], null, 2));
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('New state' + '\n' + JSON.stringify(itemState, null, 2));
+      }
+
+      this.getState().itemStates[i] = itemState;
+    }
+  }, {
+    key: "onItemHeightChange",
+    value: function onItemHeightChange(i) {
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Re-measure item height ~');
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Item', i);
+
+      var _this$getState3 = this.getState(),
+          itemHeights = _this$getState3.itemHeights;
+
+      var previousHeight = itemHeights[i];
+
+      if (previousHeight === undefined) {
+        return (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.reportError)("\"onItemHeightChange()\" has been called for item ".concat(i, ", but that item hasn't been rendered before."));
+      }
+
+      var newHeight = this.remeasureItemHeight(i); // Check if the item is still rendered.
+
+      if (newHeight === undefined) {
+        // There could be valid cases when an item is no longer rendered
+        // by the time `.onItemHeightChange(i)` gets called.
+        // For example, suppose there's a list of several items on a page,
+        // and those items are in "minimized" state (having height 100px).
+        // Then, a user clicks an "Expand all items" button, and all items
+        // in the list are expanded (expanded item height is gonna be 700px).
+        // `VirtualScroller` demands that `.onItemHeightChange(i)` is called
+        // in such cases, and the developer has properly added the code to do that.
+        // So, if there were 10 "minimized" items visible on a page, then there
+        // will be 10 individual `.onItemHeightChange(i)` calls. No issues so far.
+        // But, as the first `.onItemHeightChange(i)` call executes, it immediately
+        // ("synchronously") triggers a re-layout, and that re-layout finds out
+        // that now, because the first item is big, it occupies most of the screen
+        // space, and only the first 3 items are visible on screen instead of 10,
+        // and so it leaves the first 3 items mounted and unmounts the rest 7.
+        // Then, after `VirtualScroller` has rerendered, the code returns to
+        // where it was executing, and calls `.onItemHeightChange(i)` for the
+        // second item. It also triggers an immediate re-layout that finds out
+        // that only the first 2 items are visible on screen, and it unmounts
+        // the third one too. After that, it calls `.onItemHeightChange(i)`
+        // for the third item, but that item is no longer rendered, so its height
+        // can't be measured, and the same's for all the rest of the original 10 items.
+        // So, even though the developer has written their code properly, there're
+        // still situations when the item could be no longer rendered by the time
+        // `.onItemHeightChange(i)` gets called.
+        return (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('The item is no longer rendered. This is not necessarily a bug, and could happen, for example, when there\'re several `onItemHeightChange(i)` calls issued at the same time.');
+      }
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Previous height', previousHeight);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('New height', newHeight);
+
+      if (previousHeight !== newHeight) {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Item height has changed ~'); // log('Item', i)
+
+        this.onUpdateShownItemIndexes({
+          reason: _Layout__WEBPACK_IMPORTED_MODULE_3__.LAYOUT_REASON.ITEM_HEIGHT_CHANGED
+        });
+      }
+    }
+    /**
+     * Validates the heights of items to be hidden on next render.
+     * For example, a user could click a "Show more" button,
+     * or an "Expand YouTube video" button, which would result
+     * in the actual height of the list item being different
+     * from what has been initially measured in `this.itemHeights[i]`,
+     * if the developer didn't call `.onItemStateChange()` and `.onItemHeightChange(i)`.
+     */
+
+  }, {
+    key: "validateWillBeHiddenItemHeights",
+    value: function validateWillBeHiddenItemHeights(firstShownItemIndex, lastShownItemIndex) {
+      var i = this.getState().firstShownItemIndex;
+
+      while (i <= this.getState().lastShownItemIndex) {
+        if (i >= firstShownItemIndex && i <= lastShownItemIndex) {// The item's still visible.
+        } else {
+          // The item will be hidden. Re-measure its height.
+          // The rationale is that there could be a situation when an item's
+          // height has changed, and the developer has properly added an
+          // `.onItemHeightChange(i)` call to notify `VirtualScroller`
+          // about that change, but at the same time that wouldn't work.
+          // For example, suppose there's a list of several items on a page,
+          // and those items are in "minimized" state (having height 100px).
+          // Then, a user clicks an "Expand all items" button, and all items
+          // in the list are expanded (expanded item height is gonna be 700px).
+          // `VirtualScroller` demands that `.onItemHeightChange(i)` is called
+          // in such cases, and the developer has properly added the code to do that.
+          // So, if there were 10 "minimized" items visible on a page, then there
+          // will be 10 individual `.onItemHeightChange(i)` calls. No issues so far.
+          // But, as the first `.onItemHeightChange(i)` call executes, it immediately
+          // ("synchronously") triggers a re-layout, and that re-layout finds out
+          // that now, because the first item is big, it occupies most of the screen
+          // space, and only the first 3 items are visible on screen instead of 10,
+          // and so it leaves the first 3 items mounted and unmounts the rest 7.
+          // Then, after `VirtualScroller` has rerendered, the code returns to
+          // where it was executing, and calls `.onItemHeightChange(i)` for the
+          // second item. It also triggers an immediate re-layout that finds out
+          // that only the first 2 items are visible on screen, and it unmounts
+          // the third one too. After that, it calls `.onItemHeightChange(i)`
+          // for the third item, but that item is no longer rendered, so its height
+          // can't be measured, and the same's for all the rest of the original 10 items.
+          // So, even though the developer has written their code properly, the
+          // `VirtualScroller` still ends up having incorrect `itemHeights[]`:
+          // `[700px, 700px, 100px, 100px, 100px, 100px, 100px, 100px, 100px, 100px]`
+          // while it should have been `700px` for all of them.
+          // To work around such issues, every item's height is re-measured before it
+          // gets hidden.
+          var previouslyMeasuredItemHeight = this.getState().itemHeights[i];
+          var actualItemHeight = this.remeasureItemHeight(i);
+
+          if (actualItemHeight !== previouslyMeasuredItemHeight) {
+            (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Item', i, 'will be unmounted at next render. Its height has changed from', previouslyMeasuredItemHeight, 'to', actualItemHeight, 'while it was shown. This is not necessarily a bug, and could happen, for example, when there\'re several `onItemHeightChange(i)` calls issued at the same time.');
+          }
+        }
+
+        i++;
+      }
+    }
+    /**
+     * Updates the "from" and "to" shown item indexes.
+     * If the list is visible and some of the items being shown are new
+     * and are required to be measured first, then
+     * `redoLayoutAfterMeasuringItemHeights` is `true`.
+     * If the list is visible and all items being shown have been encountered
+     * (and measured) before, then `redoLayoutAfterMeasuringItemHeights` is `false`.
+     */
+
+  }, {
+    key: "updateItems",
+
+    /**
+     * @deprecated
+     * `.updateItems()` has been renamed to `.setItems()`.
+     */
+    value: function updateItems(newItems, options) {
+      return this.setItems(newItems, options);
+    }
+    /**
+     * Updates `items`. For example, can prepend or append new items to the list.
+     * @param  {any[]} newItems
+     * @param {boolean} [options.preserveScrollPositionOnPrependItems] — Set to `true` to enable "restore scroll position after prepending items" feature (could be useful when implementing "Show previous items" button).
+     */
+
+  }, {
+    key: "setItems",
+    value: function setItems(newItems) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      // * @param  {object} [newCustomState] — If `customState` was passed to `getInitialState()`, this `newCustomState` updates it.
+      var _this$getState4 = this.getState(),
+          previousItems = _this$getState4.items;
+
+      var _this$getState5 = this.getState(),
+          itemStates = _this$getState5.itemStates,
+          itemHeights = _this$getState5.itemHeights;
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Update items ~');
+      var layout;
+      var itemsDiff = this.getItemsDiff(previousItems, newItems); // If it's an "incremental" update.
+
+      if (itemsDiff && !this.layoutResetPending) {
+        var _this$getState6 = this.getState(),
+            firstShownItemIndex = _this$getState6.firstShownItemIndex,
+            lastShownItemIndex = _this$getState6.lastShownItemIndex,
+            beforeItemsHeight = _this$getState6.beforeItemsHeight,
+            afterItemsHeight = _this$getState6.afterItemsHeight;
+
+        layout = {
+          firstShownItemIndex: firstShownItemIndex,
+          lastShownItemIndex: lastShownItemIndex,
+          beforeItemsHeight: beforeItemsHeight,
+          afterItemsHeight: afterItemsHeight
+        };
+        var prependedItemsCount = itemsDiff.prependedItemsCount,
+            appendedItemsCount = itemsDiff.appendedItemsCount;
+
+        if (prependedItemsCount > 0) {
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Prepend', prependedItemsCount, 'items');
+          itemHeights = new Array(prependedItemsCount).concat(itemHeights);
+
+          if (itemStates) {
+            itemStates = new Array(prependedItemsCount).concat(itemStates);
+          }
+        }
+
+        if (appendedItemsCount > 0) {
+          (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Append', appendedItemsCount, 'items');
+          itemHeights = itemHeights.concat(new Array(appendedItemsCount));
+
+          if (itemStates) {
+            itemStates = itemStates.concat(new Array(appendedItemsCount));
+          }
+        }
+
+        this.layout.updateLayoutForItemsDiff(layout, itemsDiff, {
+          itemsCount: newItems.length
+        });
+
+        if (prependedItemsCount > 0) {
+          // `preserveScrollPosition` option name is deprecated,
+          // use `preserveScrollPositionOnPrependItems` instead.
+          if (options.preserveScrollPositionOnPrependItems || options.preserveScrollPosition) {
+            if (this.getState().firstShownItemIndex === 0) {
+              this.restoreScroll.captureScroll({
+                previousItems: previousItems,
+                newItems: newItems,
+                prependedItemsCount: prependedItemsCount
+              });
+              this.layout.showItemsFromTheStart(layout);
+            }
+          }
+        }
+      } else {
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Items have changed, and', itemsDiff ? 'a re-layout from scratch has been requested.' : 'it\'s not a simple append and/or prepend.', 'Rerender the entire list from scratch.');
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Previous items', previousItems);
+        (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('New items', newItems);
+        itemHeights = new Array(newItems.length);
+        itemStates = new Array(newItems.length);
+        layout = this.getInitialLayoutValues({
+          itemsCount: newItems.length
+        });
+      }
+
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('~ Update state ~');
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('First shown item index', layout.firstShownItemIndex);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Last shown item index', layout.lastShownItemIndex);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('Before items height', layout.beforeItemsHeight);
+      (0,_utility_debug__WEBPACK_IMPORTED_MODULE_2__.default)('After items height (actual or estimated)', layout.afterItemsHeight); // Optionally preload items to be rendered.
+
+      this.onBeforeShowItems(newItems, itemHeights, layout.firstShownItemIndex, layout.lastShownItemIndex); // `this.newItemsPending` will be cleared in `didUpdateState()`.
+
+      this.newItemsPending = newItems; // Update state.
+
+      this.setState(_objectSpread({}, layout, {
+        items: newItems,
+        itemStates: itemStates,
+        itemHeights: itemHeights
+      }));
+    }
+  }, {
+    key: "getItemsDiff",
+    value: function getItemsDiff(previousItems, newItems) {
+      return (0,_getItemsDiff__WEBPACK_IMPORTED_MODULE_12__.default)(previousItems, newItems, this.isItemEqual);
+    }
+  }]);
+
+  return VirtualScroller;
+}();
+
+
+//# sourceMappingURL=VirtualScroller.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/getItemsDiff.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/getItemsDiff.js ***!
+  \***************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ getItemsDiff)
+/* harmony export */ });
+/**
+ * Checks whether it's an "incremental" items update, and returns the "diff".
+ * @param  {any[]} previousItems
+ * @param  {any[]} newItems
+ * @return {object} [diff]
+ */
+function getItemsDiff(previousItems, newItems, isEqual) {
+  var firstPreviousItemIndex = -1;
+  var lastPreviousItemIndex = -1;
+
+  if (previousItems.length > 0) {
+    firstPreviousItemIndex = findInArray(newItems, previousItems[0], isEqual);
+
+    if (firstPreviousItemIndex >= 0) {
+      if (arePreviousItemsPreserved(previousItems, newItems, firstPreviousItemIndex, isEqual)) {
+        lastPreviousItemIndex = firstPreviousItemIndex + previousItems.length - 1;
+      }
+    }
+  }
+
+  var isIncrementalUpdate = firstPreviousItemIndex >= 0 && lastPreviousItemIndex >= 0;
+
+  if (isIncrementalUpdate) {
+    return {
+      prependedItemsCount: firstPreviousItemIndex,
+      appendedItemsCount: newItems.length - (lastPreviousItemIndex + 1)
+    };
+  }
+}
+
+function arePreviousItemsPreserved(previousItems, newItems, offset, isEqual) {
+  // Check each item of the `previousItems` to determine
+  // whether it's an "incremental" items update.
+  // (an update when items are prepended or appended)
+  var i = 0;
+
+  while (i < previousItems.length) {
+    if (newItems.length <= offset + i || !isEqual(newItems[offset + i], previousItems[i])) {
+      return false;
+    }
+
+    i++;
+  }
+
+  return true;
+}
+
+function findInArray(array, element, isEqual) {
+  var i = 0;
+
+  while (i < array.length) {
+    if (isEqual(array[i], element)) {
+      return i;
+    }
+
+    i++;
+  }
+
+  return -1;
+}
+//# sourceMappingURL=getItemsDiff.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/getVerticalSpacing.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/getVerticalSpacing.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ getVerticalSpacing)
+/* harmony export */ });
+function getVerticalSpacing(_ref) {
+  var container = _ref.container,
+      screen = _ref.screen;
+
+  if (screen.getChildElementsCount(container) > 1) {
+    var firstShownRowTopOffset = screen.getChildElementTopOffset(container, 0);
+    var firstShownRowHeight = screen.getChildElementHeight(container, 0);
+    var i = 1;
+
+    while (i < screen.getChildElementsCount(container)) {
+      var itemTopOffset = screen.getChildElementTopOffset(container, i);
+      var itemHeight = screen.getChildElementHeight(container, i); // If next row is detected.
+
+      if (itemTopOffset !== firstShownRowTopOffset) {
+        // Measure inter-row spacing.
+        return itemTopOffset - (firstShownRowTopOffset + firstShownRowHeight);
+      } // A row height is the maximum of its item heights.
+
+
+      firstShownRowHeight = Math.max(firstShownRowHeight, itemHeight);
+      i++;
+    }
+  }
+}
+//# sourceMappingURL=getVerticalSpacing.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/utility/debounce.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/utility/debounce.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ debounce)
+/* harmony export */ });
+/* harmony import */ var request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! request-animation-frame-timeout */ "./node_modules/request-animation-frame-timeout/modules/index.js");
+// For some weird reason, in Chrome, `setTimeout()` would lag up to a second (or more) behind.
+// Turns out, Chrome developers have deprecated `setTimeout()` API entirely without asking anyone.
+// Replacing `setTimeout()` with `requestAnimationFrame()` can work around that Chrome bug.
+// https://github.com/bvaughn/react-virtualized/issues/722
+
+/**
+ * Same as `lodash`'s `debounce()` for functions with no arguments.
+ * @param  {function} func
+ * @param  {number} interval
+ * @return {function}
+ */
+
+function debounce(func, interval) {
+  var timeout;
+  return function () {
+    var _this = this;
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.clearTimeout)(timeout);
+    timeout = (0,request_animation_frame_timeout__WEBPACK_IMPORTED_MODULE_0__.setTimeout)(function () {
+      return func.apply(_this, args);
+    }, interval);
+  };
+}
+//# sourceMappingURL=debounce.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/utility/debug.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/utility/debug.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ log),
+/* harmony export */   "reportError": () => (/* binding */ reportError),
+/* harmony export */   "isDebug": () => (/* binding */ isDebug)
+/* harmony export */ });
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function log() {
+  if (isDebug()) {
+    var _console;
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    (_console = console).log.apply(_console, _toConsumableArray(['[virtual-scroller]'].concat(args)));
+  }
+}
+function reportError() {
+  for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+
+  if (typeof window !== 'undefined') {
+    // In a web browser.
+    // Output a debug message immediately so that it's known
+    // at which point did the error occur between other debug logs.
+    log.apply(this, ['ERROR'].concat(args));
+    setTimeout(function () {
+      // Throw an error in a timeout so that it doesn't interrupt the application's flow.
+      // At the same time, by throwing a client-side error, such error could be spotted
+      // in some error monitoring software like `sentry.io`, while also being visible
+      // in the console.
+      // The `.join(' ')` part doesn't support stringifying JSON objects,
+      // but those don't seem to be used in any of the error messages.
+      throw new Error(['[virtual-scroller]'].concat(args).join(' '));
+    }, 0);
+  } else {
+    var _console2;
+
+    // On a server.
+    (_console2 = console).error.apply(_console2, _toConsumableArray(['[virtual-scroller]'].concat(args)));
+  }
+}
+function isDebug() {
+  return typeof window !== 'undefined' && window.VirtualScrollerDebug;
+}
+//# sourceMappingURL=debug.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/utility/px.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/utility/px.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ px)
+/* harmony export */ });
+/**
+ * Rounds coordinates upto 4th decimal place (after dot) and appends "px".
+ * Small numbers could be printed as `"1.2345e-50"` unless rounded:
+ * that would be invalid "px" value in CSS.
+ * @param {number}
+ * @return {string}
+ */
+function px(number) {
+  // Fractional pixels are used on "retina" screens.
+  return number.toFixed(2) + 'px';
+}
+//# sourceMappingURL=px.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/modules/utility/shallowEqual.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/virtual-scroller/modules/utility/shallowEqual.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ shallowEqual)
+/* harmony export */ });
+// https://github.com/lodash/lodash/issues/2340
+// https://github.com/facebook/fbjs/blob/master/packages/fbjs/src/core/shallowEqual.js
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @providesModule shallowEqual
+ * @typechecks
+ * @flow
+ */
+
+/*eslint-disable no-self-compare */
+
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+/**
+ * inlined Object.is polyfill to avoid requiring consumers ship their own
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+ */
+
+function is(x, y) {
+  // SameValue algorithm
+  if (x === y) {
+    // Steps 1-5, 7-10
+    // Steps 6.b-6.e: +0 != -0
+    // Added the nonzero y check to make Flow happy, but it is redundant
+    return x !== 0 || y !== 0 || 1 / x === 1 / y;
+  } else {
+    // Step 6.a: NaN == NaN
+    return x !== x && y !== y;
+  }
+}
+/**
+ * Performs equality by iterating through keys on an object and returning false
+ * when any key has values which are not strictly equal between the arguments.
+ * Returns true when the values of all keys are strictly equal.
+ */
+
+
+function shallowEqual(objA, objB) {
+  if (is(objA, objB)) {
+    return true;
+  }
+
+  if (_typeof(objA) !== 'object' || objA === null || _typeof(objB) !== 'object' || objB === null) {
+    return false;
+  }
+
+  var keysA = Object.keys(objA);
+  var keysB = Object.keys(objB);
+
+  if (keysA.length !== keysB.length) {
+    return false;
+  } // Test for A's keys different from B.
+
+
+  for (var i = 0; i < keysA.length; i++) {
+    if (!hasOwnProperty.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+//# sourceMappingURL=shallowEqual.js.map
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/source/DOM/Screen.js":
+/*!************************************************************!*\
+  !*** ./node_modules/virtual-scroller/source/DOM/Screen.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Screen)
+/* harmony export */ });
+class Screen {
+	/**
+	 * Returns a child element's "top offset", relative to the `parentElement`'s top edge.
+	 * @param  {Element} parentElement
+	 * @param  {number} childElementIndex
+	 * @return {number}
+	 */
+	getChildElementTopOffset(parentElement, childElementIndex) {
+		return parentElement.childNodes[childElementIndex].getBoundingClientRect().top
+	}
+
+	/**
+	 * Returns a child element's height.
+	 * @param  {Element} parentElement
+	 * @param  {number} childElementIndex
+	 * @return {number}
+	 */
+	getChildElementHeight(parentElement, childElementIndex) {
+		return this.getElementHeight(parentElement.childNodes[childElementIndex])
+	}
+
+	/**
+	 * Returns the count of child elements of an element.
+	 * @param  {Element} parentElement
+	 * @return {number}
+	 */
+	getChildElementsCount(parentElement) {
+		return parentElement.childNodes.length
+	}
+
+	/**
+	 * Removes all child elements of an element.
+	 * @param  {Element} element
+	 */
+	clearElement(element) {
+		while (element.firstChild) {
+			element.removeChild(element.firstChild)
+		}
+	}
+
+	/**
+	 * Returns an element's height.
+	 * @param  {Element} element
+	 * @return {number}
+	 */
+	getElementHeight(element) {
+		// `offsetHeight` is not precise enough (doesn't return fractional pixels).
+		// return element.offsetHeight
+		return element.getBoundingClientRect().height
+	}
+}
+
+/***/ }),
+
+/***/ "./node_modules/virtual-scroller/source/DOM/ScrollableContainer.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/virtual-scroller/source/DOM/ScrollableContainer.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ScrollableContainer),
+/* harmony export */   "ScrollableWindowContainer": () => (/* binding */ ScrollableWindowContainer)
+/* harmony export */ });
+class ScrollableContainer {
+	/**
+	 * Constructs a new "scrollable container" from an element.
+	 * @param {Element} scrollableContainer
+	 */
+	constructor(element) {
+		this.element = element
+	}
+
+	/**
+	 * Returns the current scroll position.
+	 * @return {number}
+	 */
+	getScrollY() {
+		return this.element.scrollTop
+	}
+
+	/**
+	 * Scrolls to a specific position.
+	 * @param {number} scrollY
+	 */
+	scrollToY(scrollY) {
+		this.element.scrollTo(0, scrollY)
+	}
+
+	/**
+	 * Returns "scrollable container" width,
+	 * i.e. the available width for its content.
+	 * @return {number}
+	 */
+	getWidth() {
+		return this.element.offsetWidth
+	}
+
+	/**
+	 * Returns the height of the "scrollable container" itself.
+	 * Not to be confused with the height of "scrollable container"'s content.
+	 * @return {number}
+	 */
+	getHeight() {
+		// if (!this.element && !precise) {
+		// 	return getScreenHeight()
+		// }
+		return this.element.offsetHeight
+	}
+
+	/**
+	 * Returns the height of the content in a scrollable container.
+	 * For example, a scrollable container can have a height of 500px,
+	 * but the content in it could have a height of 5000px,
+	 * in which case a vertical scrollbar is rendered, and only
+	 * one-tenth of all the items are shown at any given moment.
+	 * This function is currently only used when using the
+	 * `preserveScrollPositionOfTheBottomOfTheListOnMount` feature.
+	 * @return {number}
+	 */
+	getContentHeight() {
+		return this.element.scrollHeight
+	}
+
+	/**
+	 * Returns a "top offset" of an element
+	 * relative to the "scrollable container"'s top edge.
+	 * @param {Element} element
+	 * @return {number}
+	 */
+	getTopOffset(element) {
+		const scrollableContainerTop = this.element.getBoundingClientRect().top
+		const scrollableContainerBorderTopWidth = this.element.clientTop
+		const top = element.getBoundingClientRect().top
+		return (top - scrollableContainerTop) + this.getScrollY() - scrollableContainerBorderTopWidth
+	}
+
+	// isVisible() {
+	// 	const { top, bottom } = this.element.getBoundingClientRect()
+	// 	return bottom > 0 && top < getScreenHeight()
+	// }
+
+	/**
+	 * Adds a "scroll" event listener to the "scrollable container".
+	 * @param {onScroll} Should be called whenever the scroll position inside the "scrollable container" (potentially) changes.
+	 * @return {function} Returns a function that stops listening.
+	 */
+	addScrollListener(onScroll) {
+		this.element.addEventListener('scroll', onScroll)
+		return () => this.element.removeEventListener('scroll', onScroll)
+	}
+
+	/**
+	 * Adds a "resize" event listener to the "scrollable container".
+	 * @param {onResize} Should be called whenever the "scrollable container"'s width or height (potentially) changes.
+	 * @param  {Element} options.container — The result of the `getContainerElement()` function that was passed in `VirtualScroller` constructor. For example, DOM renderer uses it to filter-out unrelated "resize" events.
+	 * @return {function} Returns a function that stops listening.
+	 */
+	onResize(onResize, { container }) {
+		// Could somehow track DOM Element size.
+		// For now, `scrollableContainer` is supposed to have constant width and height.
+		// (unless window is resized).
+		// https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
+		// https://web.dev/resize-observer/
+		let unobserve
+		if (typeof ResizeObserver !== 'undefined') {
+			const resizeObserver = new ResizeObserver((entries) => {
+				// "one entry per observed element".
+				// https://web.dev/resize-observer/
+				// `entry.target === this.element`.
+				const entry = entries[0]
+				// // If `entry.contentBoxSize` property is supported by the web browser.
+				// if (entry.contentBoxSize) {
+				// 	// https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserverEntry/contentBoxSize
+				// 	const width = entry.contentBoxSize.inlineSize
+				// 	const height = entry.contentBoxSize.blockSize
+				// }
+				onResize()
+			})
+			resizeObserver.observe(this.element)
+			unobserve = () => resizeObserver.unobserve(this.element)
+		}
+		// I guess, if window is resized, `onResize()` will be triggered twice:
+		// once for window resize, and once for the scrollable container resize.
+		// But `onResize()` also has an internal check: if the container size
+		// hasn't changed since the previous time `onResize()` has been called,
+		// then `onResize()` doesn't do anything, so, I guess, there shouldn't be
+		// any "performance implications" of running the listener twice in such case.
+		const unlistenGlobalResize = addGlobalResizeListener(onResize, { container })
+		return () => {
+			if (unobserve) {
+				unobserve()
+			}
+			unlistenGlobalResize()
+		}
+	}
+}
+
+class ScrollableWindowContainer extends ScrollableContainer {
+	constructor() {
+		super(window)
+	}
+
+	/**
+	 * Returns the current scroll position.
+	 * @return {number}
+	 */
+	getScrollY() {
+		// `window.scrollY` is not supported by Internet Explorer.
+		return window.pageYOffset
+	}
+
+	/**
+	 * Returns "scrollable container" width,
+	 * i.e. the available width for its content.
+	 * @return {number}
+	 */
+	getWidth() {
+		// https://javascript.info/size-and-scroll-window
+		// `<!DOCTYPE html>` may be required in order for this to work correctly.
+		// Includes scrollbar (if any).
+		// Correctly reflects page zoom in iOS Safari.
+		// (scales screen width accordingly).
+		// But, includes scrollbar (if any).
+		return window.innerWidth
+	}
+
+	/**
+	 * Returns the height of the "scrollable container" itself.
+	 * Not to be confused with the height of "scrollable container"'s content.
+	 * @return {number}
+	 */
+	getHeight() {
+		// https://javascript.info/size-and-scroll-window
+		// `<!DOCTYPE html>` is required in order for this to work correctly.
+		// Without it, the returned height would be the height of the entire document.
+		// Includes scrollbar (if any).
+		// Supports iOS Safari's dynamically shown/hidden
+		// top URL bar and bottom actions bar.
+		// https://codesandbox.io/s/elegant-fog-iddrh
+		// Tested in IE 11.
+		// It also correctly reflects page zoom in iOS Safari.
+		// (scales screen height accordingly).
+		// But, includes scrollbar (if any).
+		return window.innerHeight
+	}
+
+	/**
+	 * Returns the height of the content in a scrollable container.
+	 * For example, a scrollable container can have a height of 500px,
+	 * but the content in it could have a height of 5000px,
+	 * in which case a vertical scrollbar is rendered, and only
+	 * one-tenth of all the items are shown at any given moment.
+	 * This function is currently only used when using the
+	 * `preserveScrollPositionOfTheBottomOfTheListOnMount` feature.
+	 * @return {number}
+	 */
+	getContentHeight() {
+		return document.documentElement.scrollHeight
+	}
+
+	/**
+	 * Returns a "top offset" of an element
+	 * relative to the "scrollable container"'s top edge.
+	 * @param {Element} element
+	 * @return {number}
+	 */
+	getTopOffset(element) {
+		const borderTopWidth = document.clientTop || document.body.clientTop || 0
+		return element.getBoundingClientRect().top + this.getScrollY() - borderTopWidth
+	}
+
+	/**
+	 * Adds a "resize" event listener to the "scrollable container".
+	 * @param {onScroll} Should be called whenever the "scrollable container"'s width or height (potentially) changes.
+	 * @param  {Element} options.container — The result of the `getContainerElement()` function that was passed in `VirtualScroller` constructor. For example, DOM renderer uses it to filter-out unrelated "resize" events.
+	 * @return {function} Returns a function that stops listening.
+	 */
+	onResize(onResize, { container }) {
+		return addGlobalResizeListener(onResize, { container })
+	}
+
+	// isVisible() {
+	// 	return true
+	// }
+}
+
+/**
+ * Adds a "resize" event listener to the `window`.
+ * @param {onResize} Should be called whenever the "container"'s width or height (potentially) changes.
+ * @param  {Element} options.container — The "container".
+ * @return {function} Returns a function that stops listening.
+ */
+function addGlobalResizeListener(onResize, { container }) {
+	const onResizeListener = () => {
+		// By default, `VirtualScroller` always performs a re-layout
+		// on window `resize` event. But browsers (Chrome, Firefox)
+		// [trigger](https://developer.mozilla.org/en-US/docs/Web/API/Window/fullScreen#Notes)
+		// window `resize` event also when a user switches into fullscreen mode:
+		// for example, when a user is watching a video and double-clicks on it
+		// to maximize it. And also when the user goes out of the fullscreen mode.
+		// Each such fullscreen mode entering/exiting will trigger window `resize`
+		// event that will it turn trigger a re-layout of `VirtualScroller`,
+		// resulting in bad user experience. To prevent that, such cases are filtered out.
+		// Some other workaround:
+		// https://stackoverflow.com/questions/23770449/embedded-youtube-video-fullscreen-or-causing-resize
+		if (document.fullscreenElement) {
+			// If the fullscreened element doesn't contain the list
+			// (and is not the list itself), then the layout hasn't been affected,
+			// so don't perform a re-layout.
+			//
+			// For example, suppose there's a list of items, and some item contains a video.
+			// If, upon clicking such video, it plays inline, and the user enters
+			// fullscreen mode while playing such inline video, then the layout won't be
+			// affected, and so such `resize` event should be ignored: when
+			// `document.fullscreenElement` is in a separate "branch" relative to the
+			// `container`.
+			//
+			// Another scenario: suppose that upon click, the video doesn't play inline,
+			// but instead a "Slideshow" component is open, with the video shown at the
+			// center of the screen in an overlay. If then the user enters fullscreen mode,
+			// the layout wouldn't be affected too, so such `resize` event should also be
+			// ignored: when `document.fullscreenElement` is inside the `container`.
+			//
+			if (document.fullscreenElement.contains(container)) {
+				// The element is either the `container`'s ancestor,
+				// Or is the `container` itself.
+				// (`a.contains(b)` includes the `a === b` case).
+				// So the `resize` event will affect the `container`'s dimensions.
+			} else {
+				// The element is either inside the `container`,
+				// Or is in a separate tree.
+				// So the `resize` event won't affect the `container`'s dimensions.
+				return
+			}
+		}
+		onResize()
+	}
+	window.addEventListener('resize', onResizeListener)
+	return () => window.removeEventListener('resize', onResizeListener)
+}
 
 /***/ })
 
@@ -2248,6 +6442,18 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 				}
 /******/ 			}
 /******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/global */
+/******/ 	(() => {
+/******/ 		__webpack_require__.g = (function() {
+/******/ 			if (typeof globalThis === 'object') return globalThis;
+/******/ 			try {
+/******/ 				return this || new Function('return this')();
+/******/ 			} catch (e) {
+/******/ 				if (typeof window === 'object') return window;
+/******/ 			}
+/******/ 		})();
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

@@ -22,6 +22,7 @@
     "laravel-mix": "^6.0.13",
     "postcss": "^8.1",
     "postcss-custom-properties": "^11.0.0",
-    "postcss-preset-env": "^6.7.0"
+    "postcss-preset-env": "^6.7.0",
+    "virtual-scroller": "^1.7.5"
   }
 }
