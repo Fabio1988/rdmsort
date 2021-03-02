@@ -2010,13 +2010,13 @@ window.pokemonData = function () {
 
         return Promise.reject(response.data);
       })["catch"](function (error) {
-        console.log('Failed to fetch pokemons...', error);
+        console.log('Failed to fetch pokemon...', error);
       });
     },
     renderItem: function renderItem(item) {
       // Item element.
       var root = document.createElement('div');
-      root.setAttribute('class', 'flex flex-row justify-start items-center');
+      root.setAttribute('class', 'pokemon-item group hover:bg-green-500');
 
       if (this.showImages) {
         // Item image.
@@ -2029,7 +2029,13 @@ window.pokemonData = function () {
 
 
       var itemName = document.createElement('span');
-      itemName.setAttribute('class', 'text-sm');
+
+      if (!this.showImages) {
+        itemName.setAttribute('class', 'px-3 py-2');
+      } else {
+        itemName.setAttribute('class', 'pl-4 text-sm');
+      }
+
       itemName.textContent = item.name;
       root.appendChild(itemName); // Return message element.
 

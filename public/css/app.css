@@ -22041,6 +22041,18 @@ video {
   animation: bounce 1s infinite;
 }
 
+.pokemon-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 0.5rem;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 @media (min-width: 640px){
   .sm\:container{
     width: 100%;
@@ -107600,5 +107612,3 @@ video {
     animation: bounce 1s infinite;
   }
 }
-
-

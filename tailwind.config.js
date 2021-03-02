@@ -32,7 +32,14 @@ module.exports = {
     },
   },
   variants: {
-    extend: {},
+    extend: {
+        height: ['responsive', 'group-hover'],
+        objectFit: ['responsive', 'group-hover'],
+        position: ['responsive', 'group-hover'],
+        scale: ['responsive', 'hover', 'focus', 'group-hover'],
+        transform: ['responsive', 'group-hover'],
+        width: ['responsive', 'group-hover'],
+    },
   },
   plugins: [],
 }

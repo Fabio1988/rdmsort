@@ -36,13 +36,13 @@ window.pokemonData = function() {
                     return Promise.reject(response.data);
                 })
                 .catch(error => {
-                    console.log('Failed to fetch pokemons...', error);
+                    console.log('Failed to fetch pokemon...', error);
                 });
         },
         renderItem(item) {
             // Item element.
             const root = document.createElement('div');
-            root.setAttribute('class', 'flex flex-row justify-start items-center');
+            root.setAttribute('class', 'pokemon-item group hover:bg-green-500');
 
             if(this.showImages) {
                 // Item image.
@@ -55,7 +55,11 @@ window.pokemonData = function() {
 
             // Item name.
             const itemName = document.createElement('span');
-            itemName.setAttribute('class', 'text-sm');
+            if(!this.showImages) {
+                itemName.setAttribute('class', 'px-3 py-2');
+            } else {
+                itemName.setAttribute('class', 'pl-4 text-sm');
+            }
             itemName.textContent = item.name;
             root.appendChild(itemName);
 
