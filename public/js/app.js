@@ -2016,7 +2016,7 @@ window.pokemonData = function () {
     renderItem: function renderItem(item) {
       // Item element.
       var root = document.createElement('div');
-      root.setAttribute('class', 'pokemon-item group hover:bg-green-500');
+      root.setAttribute('class', 'pokemon-item group hover:bg-green-500 relative');
 
       if (this.showImages) {
         // Item image.
@@ -2036,8 +2036,13 @@ window.pokemonData = function () {
         itemName.setAttribute('class', 'pl-4 text-sm');
       }
 
-      itemName.textContent = item.name;
-      root.appendChild(itemName); // Return message element.
+      itemName.innerHTML = "<span class=\"text-green-600\">#".concat(item.id, "</span> ").concat(item.name);
+      root.appendChild(itemName); // Item generation.
+
+      var generation = document.createElement('span');
+      generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2');
+      generation.textContent = "Generation ".concat(item.gen);
+      root.appendChild(generation); // Return message element.
 
       return root;
     },

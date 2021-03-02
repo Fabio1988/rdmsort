@@ -42,7 +42,7 @@ window.pokemonData = function() {
         renderItem(item) {
             // Item element.
             const root = document.createElement('div');
-            root.setAttribute('class', 'pokemon-item group hover:bg-green-500');
+            root.setAttribute('class', 'pokemon-item group hover:bg-green-500 relative');
 
             if(this.showImages) {
                 // Item image.
@@ -60,8 +60,14 @@ window.pokemonData = function() {
             } else {
                 itemName.setAttribute('class', 'pl-4 text-sm');
             }
-            itemName.textContent = item.name;
+            itemName.innerHTML = `<span class="text-green-600">#${item.id}</span> ${item.name}`;
             root.appendChild(itemName);
+
+            // Item generation.
+            const generation = document.createElement('span');
+            generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2');
+            generation.textContent = `Generation ${item.gen}`;
+            root.appendChild(generation);
 
             // Return message element.
             return root;
