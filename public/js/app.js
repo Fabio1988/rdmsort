@@ -9153,10 +9153,10 @@ window.pokemonData = function () {
       var img = document.createElement('img');
       img.setAttribute('src', "/img/".concat(item.id, ".png"));
       img.setAttribute('alt', item.name);
-      img.setAttribute('class', 'h-16 w-16 object-fit');
+      img.setAttribute('class', 'h-16 w-16 object-fit mr-6');
       listItem.appendChild(img);
       var itemName = document.createElement('span');
-      itemName.textContent = item.name; // Item generation.
+      itemName.innerHTML = "<span class=\"text-green-600 inline-block w-12\">#".concat(item.id, "</span> ").concat(item.name); // Item generation.
 
       var generation = document.createElement('span');
       generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2');

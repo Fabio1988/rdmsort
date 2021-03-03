@@ -167,11 +167,11 @@ window.pokemonData = function() {
             const img = document.createElement('img');
             img.setAttribute('src', `/img/${item.id}.png`);
             img.setAttribute('alt', item.name);
-            img.setAttribute('class', 'h-16 w-16 object-fit')
+            img.setAttribute('class', 'h-16 w-16 object-fit mr-6')
             listItem.appendChild(img);
 
             const itemName = document.createElement('span');
-            itemName.textContent = item.name;
+            itemName.innerHTML = `<span class="text-green-600 inline-block w-12">#${item.id}</span> ${item.name}`;
 
             // Item generation.
             const generation = document.createElement('span');
