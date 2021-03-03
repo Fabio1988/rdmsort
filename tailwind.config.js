@@ -9,6 +9,7 @@ module.exports = {
     extend: {
         colors: {
             primary: '#9CCEAD',
+            'primary-75': 'rgba(156, 206, 173, .8)',
         },
         fontFamily: {
             roboto: [
@@ -28,17 +29,21 @@ module.exports = {
                 '"Segoe UI Symbol"',
                 '"Noto Color Emoji"',
             ]
+        },
+        minWidth: {
+            64: '16rem'
         }
     },
   },
   variants: {
     extend: {
-        height: ['responsive', 'group-hover'],
-        objectFit: ['responsive', 'group-hover'],
-        position: ['responsive', 'group-hover'],
+        display: ['responsive', 'hover', 'group-hover'],
+        height: ['responsive', 'hover', 'group-hover'],
+        objectFit: ['responsive', 'hover', 'group-hover'],
+        position: ['responsive', 'hover', 'group-hover'],
         scale: ['responsive', 'hover', 'focus', 'group-hover'],
-        transform: ['responsive', 'group-hover'],
-        width: ['responsive', 'group-hover'],
+        transform: ['responsive', 'hover', 'group-hover'],
+        width: ['responsive', 'hover', 'group-hover'],
     },
   },
   plugins: [],

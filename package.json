@@ -13,15 +13,15 @@
     "start": "cross-env mix watch"
   },
   "dependencies": {
-    "autoprefixer": "^9.8.6",
-    "tailwindcss": "^1.7.2"
+    "@shopify/draggable": "^1.0.0-beta.8",
+    "autoprefixer": "^10.0.0",
+    "tailwindcss": "^2.0.0"
   },
   "devDependencies": {
     "alpinejs": "^2.8.1",
     "cross-env": "^7.0.3",
     "laravel-mix": "^6.0.13",
     "postcss": "^8.1",
-    "postcss-custom-properties": "^11.0.0",
     "postcss-preset-env": "^6.7.0",
     "virtual-scroller": "^1.7.5"
   }

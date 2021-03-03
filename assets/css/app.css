@@ -7,3 +7,7 @@
 .pokemon-item {
     @apply flex flex-row justify-start items-center rounded-lg select-none;
 }
+
+[x-cloak] {
+    display: none;
+}
