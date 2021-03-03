@@ -8997,6 +8997,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var virtual_scroller_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! virtual-scroller/dom */ "./node_modules/virtual-scroller/modules/DOM/VirtualScroller.js");
 /* harmony import */ var virtual_scroller_source_DOM_ScrollableContainer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! virtual-scroller/source/DOM/ScrollableContainer */ "./node_modules/virtual-scroller/source/DOM/ScrollableContainer.js");
 /* harmony import */ var virtual_scroller_source_DOM_Screen__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! virtual-scroller/source/DOM/Screen */ "./node_modules/virtual-scroller/source/DOM/Screen.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 
 
 
@@ -9007,7 +9019,10 @@ window.language = 'de';
 window.pokemonData = function () {
   return {
     pokemon: [],
+    filteredGeneration: [],
     selectedPokemon: [],
+    selectedGeneration: null,
+    availableGenerations: [],
     showImages: true,
     showModal: false,
     importIds: '',
@@ -9017,11 +9032,17 @@ window.pokemonData = function () {
       this.$watch('showImages', function (value) {
         _this.buildList();
       });
+      this.$watch('selectedGeneration', function (value) {
+        _this.filterGeneration(value);
+      });
       fetch('resources/' + language + '.json').then(function (response) {
         return response.json();
       }).then(function (data) {
         if (data) {
           _this.pokemon = data;
+          _this.filteredGeneration = _this.pokemon;
+
+          _this.buildGenerationSelectionList();
 
           _this.buildList();
 
@@ -9058,6 +9079,11 @@ window.pokemonData = function () {
           _this.selectedPokemon = sortedList;
         }, 2);
       });
+    },
+    buildGenerationSelectionList: function buildGenerationSelectionList() {
+      this.availableGenerations = _toConsumableArray(new Set(this.pokemon.map(function (item) {
+        return item.gen;
+      })));
     },
     renderItem: function renderItem(item) {
       var _this2 = this;
@@ -9123,11 +9149,22 @@ window.pokemonData = function () {
 
       return root;
     },
+    filterGeneration: function filterGeneration(value) {
+      if (value === '' || value === null) {
+        this.filteredGeneration = this.pokemon;
+      } else {
+        this.filteredGeneration = this.pokemon.filter(function (item) {
+          return parseInt(item.gen) === parseInt(value);
+        });
+      }
+
+      this.buildList();
+    },
     buildList: function buildList() {
       document.getElementById("container") && document.getElementById("container").remove();
       this.buildContainer();
       var scrollableContainer = document.getElementById('itemContainer');
-      var virtualScroller = new virtual_scroller_dom__WEBPACK_IMPORTED_MODULE_2__.default(document.getElementById('container'), this.pokemon, this.renderItem.bind(this), {
+      var virtualScroller = new virtual_scroller_dom__WEBPACK_IMPORTED_MODULE_2__.default(document.getElementById('container'), this.filteredGeneration, this.renderItem.bind(this), {
         scrollableContainer: scrollableContainer,
         renderingEngine: {
           name: 'Non-DOM Rendering Engine',
@@ -9189,7 +9226,6 @@ window.pokemonData = function () {
     importPokemon: function importPokemon() {
       var _this4 = this;
 
-      console.log('importing');
       var selectedItems = [];
       this.importIds.split("\n").forEach(function (id) {
         var item = _this4.pokemon.find(function (pk) {

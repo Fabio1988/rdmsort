@@ -9,7 +9,10 @@ window.language = 'de';
 window.pokemonData = function() {
     return {
         pokemon: [],
+        filteredGeneration: [],
         selectedPokemon: [],
+        selectedGeneration: null,
+        availableGenerations: [],
         showImages: true,
         showModal: false,
         importIds: '',
@@ -18,11 +21,18 @@ window.pokemonData = function() {
                 this.buildList();
             });
 
+            this.$watch('selectedGeneration', value => {
+                this.filterGeneration(value);
+            });
+
             fetch('resources/' + language + '.json')
                 .then(response => response.json())
                 .then(data => {
                     if(data) {
                         this.pokemon = data;
+                        this.filteredGeneration = this.pokemon;
+
+                        this.buildGenerationSelectionList();
 
                         this.buildList();
                         return;
@@ -63,6 +73,9 @@ window.pokemonData = function() {
                     this.selectedPokemon = sortedList;
                 }, 2);
             });
+        },
+        buildGenerationSelectionList() {
+            this.availableGenerations = [...new Set(this.pokemon.map(item => item.gen))];
         },
         renderItem(item) {
             // Item element.
@@ -129,6 +142,15 @@ window.pokemonData = function() {
             // Return message element.
             return root;
         },
+        filterGeneration(value) {
+            if (value === '' || value === null) {
+                this.filteredGeneration = this.pokemon;
+            } else {
+                this.filteredGeneration = this.pokemon.filter(item => parseInt(item.gen) === parseInt(value));
+            }
+
+            this.buildList();
+        },
         buildList() {
             document.getElementById("container") && document.getElementById("container").remove();
             this.buildContainer();
@@ -137,7 +159,7 @@ window.pokemonData = function() {
 
             const virtualScroller = new VirtualScroller(
                 document.getElementById('container'),
-                this.pokemon,
+                this.filteredGeneration,
                 this.renderItem.bind(this),
                 {
                     scrollableContainer,
@@ -202,7 +224,6 @@ window.pokemonData = function() {
             document.querySelector('ul#selectedItems').querySelectorAll('li').forEach(item => item.remove());
         },
         importPokemon() {
-            console.log('importing');
             let selectedItems = [];
 
             this.importIds.split("\n").forEach(id => {
