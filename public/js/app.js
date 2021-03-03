@@ -9147,8 +9147,10 @@ window.pokemonData = function () {
       document.getElementById('itemContainer').appendChild(containerEl);
     },
     appendItemToList: function appendItemToList(item) {
+      var _this3 = this;
+
       var listItem = document.createElement('li');
-      listItem.setAttribute('class', 'relative flex flex-row justify-start items-center min-w-64');
+      listItem.setAttribute('class', 'relative flex flex-row justify-start items-center min-w-64 group cursor-move');
       listItem.setAttribute('data-id', item.id);
       var img = document.createElement('img');
       img.setAttribute('src', "/img/".concat(item.id, ".png"));
@@ -9159,19 +9161,31 @@ window.pokemonData = function () {
       itemName.innerHTML = "<span class=\"text-green-600 inline-block w-12\">#".concat(item.id, "</span> ").concat(item.name); // Item generation.
 
       var generation = document.createElement('span');
-      generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2');
-      generation.textContent = "Generation ".concat(item.gen);
+      generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2 z-10');
+      generation.textContent = "Generation ".concat(item.gen); // Item generation.
+
+      var deleteButton = document.createElement('button');
+      deleteButton.setAttribute('class', 'hidden group-hover:block absolute rounded-full bg-red-500 hover:bg-red-700 text-xs text-white px-8 py-1 right-0 mr-2 z-20');
+      deleteButton.setAttribute('data-id', item.id);
+      deleteButton.textContent = "Delete";
+      deleteButton.addEventListener('click', function (e) {
+        deleteButton.closest('li').remove();
+        _this3.selectedPokemon = _this3.selectedPokemon.filter(function (pk) {
+          return parseInt(pk.id) !== parseInt(deleteButton.getAttribute('data-id'));
+        });
+      });
       listItem.appendChild(itemName);
       listItem.appendChild(generation);
+      listItem.appendChild(deleteButton);
       document.querySelector('ul#selectedItems').appendChild(listItem);
     },
     importPokemon: function importPokemon() {
-      var _this3 = this;
+      var _this4 = this;
 
       console.log('importing');
       var selectedItems = [];
       this.importIds.split("\n").forEach(function (id) {
-        var item = _this3.pokemon.find(function (pk) {
+        var item = _this4.pokemon.find(function (pk) {
           return parseInt(pk.id) === parseInt(id);
         });
 
@@ -9181,7 +9195,7 @@ window.pokemonData = function () {
           gen: item.gen
         });
 
-        _this3.appendItemToList(item);
+        _this4.appendItemToList(item);
       });
       this.selectedPokemon = selectedItems;
       this.showModal = false;
@@ -9192,7 +9206,7 @@ window.pokemonData = function () {
 
       el.value = this.selectedPokemon.map(function (item) {
         return item.id;
-      }).join("\n");
+      }).join("\n").trim();
       document.body.appendChild(el);
       el.select();
       document.execCommand('copy');

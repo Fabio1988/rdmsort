@@ -161,7 +161,7 @@ window.pokemonData = function() {
         },
         appendItemToList(item) {
             let listItem = document.createElement('li');
-            listItem.setAttribute('class', 'relative flex flex-row justify-start items-center min-w-64');
+            listItem.setAttribute('class', 'relative flex flex-row justify-start items-center min-w-64 group cursor-move');
             listItem.setAttribute('data-id', item.id);
 
             const img = document.createElement('img');
@@ -175,11 +175,24 @@ window.pokemonData = function() {
 
             // Item generation.
             const generation = document.createElement('span');
-            generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2');
+            generation.setAttribute('class', 'absolute rounded-full bg-green-500 text-xs text-green-900 px-2 py-1 right-0 mr-2 z-10');
             generation.textContent = `Generation ${item.gen}`;
+
+            // Item generation.
+            const deleteButton = document.createElement('button');
+            deleteButton.setAttribute('class', 'hidden group-hover:block absolute rounded-full bg-red-500 hover:bg-red-700 text-xs text-white px-8 py-1 right-0 mr-2 z-20');
+            deleteButton.setAttribute('data-id', item.id);
+            deleteButton.textContent = `Delete`;
+            deleteButton.addEventListener('click', e => {
+                deleteButton.closest('li').remove();
+                this.selectedPokemon = this.selectedPokemon.filter(pk => {
+                    return parseInt(pk.id) !== parseInt(deleteButton.getAttribute('data-id'));
+                });
+            });
 
             listItem.appendChild(itemName);
             listItem.appendChild(generation);
+            listItem.appendChild(deleteButton);
 
             document.querySelector('ul#selectedItems').appendChild(listItem);
         },
@@ -209,7 +222,7 @@ window.pokemonData = function() {
             //el.setAttribute('class', 'hidden');
             el.value = this.selectedPokemon.map(item => {
                 return item.id;
-            }).join("\n");
+            }).join("\n").trim();
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
