@@ -9179,6 +9179,13 @@ window.pokemonData = function () {
       listItem.appendChild(deleteButton);
       document.querySelector('ul#selectedItems').appendChild(listItem);
     },
+    openImportModal: function openImportModal() {
+      this.showModal = true;
+      this.selectedPokemon = [];
+      document.querySelector('ul#selectedItems').querySelectorAll('li').forEach(function (item) {
+        return item.remove();
+      });
+    },
     importPokemon: function importPokemon() {
       var _this4 = this;
 

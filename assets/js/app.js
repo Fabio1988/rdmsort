@@ -196,6 +196,11 @@ window.pokemonData = function() {
 
             document.querySelector('ul#selectedItems').appendChild(listItem);
         },
+        openImportModal() {
+            this.showModal = true;
+            this.selectedPokemon = [];
+            document.querySelector('ul#selectedItems').querySelectorAll('li').forEach(item => item.remove());
+        },
         importPokemon() {
             console.log('importing');
             let selectedItems = [];
