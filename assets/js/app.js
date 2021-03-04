@@ -67,6 +67,29 @@ window.pokemonData = function() {
                 .then(data => {
                     if(data) {
                         this.translations = data;
+
+                        fetch('resources/' + this.selectedLanguage + '.json')
+                            .then(response => response.json())
+                            .then(data => {
+                                if(data) {
+                                    this.pokemon = data;
+                                    this.filteredGeneration = this.pokemon;
+
+                                    if(updateSelected) {
+                                        this.updateSelectedPokemon();
+                                    }
+
+                                    this.buildGenerationSelectionList();
+
+                                    this.buildList();
+                                    return;
+                                }
+
+                                return Promise.reject(response.data);
+                            })
+                            .catch(error => {
+                                console.log('Failed to fetch pokemon...', error);
+                            });
                         return;
                     }
 
@@ -74,29 +97,6 @@ window.pokemonData = function() {
                 })
                 .catch(error => {
                     console.log('Failed to fetch translations...', error);
-                });
-
-            fetch('resources/' + this.selectedLanguage + '.json')
-                .then(response => response.json())
-                .then(data => {
-                    if(data) {
-                        this.pokemon = data;
-                        this.filteredGeneration = this.pokemon;
-
-                        if(updateSelected) {
-                            this.updateSelectedPokemon();
-                        }
-
-                        this.buildGenerationSelectionList();
-
-                        this.buildList();
-                        return;
-                    }
-
-                    return Promise.reject(response.data);
-                })
-                .catch(error => {
-                    console.log('Failed to fetch pokemon...', error);
                 });
         },
         changeLanguage(lang) {
