@@ -1,0 +1,11 @@
+{
+  "import": "Pokemon importieren",
+  "export": "Pokemon exportieren",
+  "show_images": "Bilder anzeigen",
+  "delete": "Löschen",
+  "select_generation": "Generation wählen",
+  "selected": "Ausgewählt:",
+  "add": "Füge %s hinzu",
+  "select_pokemon_first": "Bitte wähle erster Pokemon aus.",
+  "copied": "Pokemon wurden in die Zwischenablage kopiert."
+}

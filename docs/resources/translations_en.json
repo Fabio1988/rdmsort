@@ -1,0 +1,11 @@
+{
+  "import": "Import pokemon",
+  "export": "Export pokemon",
+  "show_images": "Show images",
+  "delete": "Delete",
+  "select_generation": "Select generation",
+  "selected": "Selected:",
+  "add": "Add %s",
+  "select_pokemon_first": "Please select some pokemon first.",
+  "copied": "Copied to your clipboard."
+}

@@ -4,8 +4,6 @@ import VirtualScroller from 'virtual-scroller/dom';
 import ScrollableContainer from "virtual-scroller/source/DOM/ScrollableContainer";
 import Screen from "virtual-scroller/source/DOM/Screen";
 
-window.language = 'de';
-
 window.pokemonData = function() {
     return {
         pokemon: [],
@@ -13,9 +11,12 @@ window.pokemonData = function() {
         selectedPokemon: [],
         selectedGeneration: null,
         availableGenerations: [],
+        selectedLanguage: 'de',
+        availableLanguages: ['de', 'en'],
         showImages: true,
         showModal: false,
         importIds: '',
+        translations: {},
         initPokemon() {
             this.$watch('showImages', value => {
                 this.buildList();
@@ -25,24 +26,7 @@ window.pokemonData = function() {
                 this.filterGeneration(value);
             });
 
-            fetch('resources/' + language + '.json')
-                .then(response => response.json())
-                .then(data => {
-                    if(data) {
-                        this.pokemon = data;
-                        this.filteredGeneration = this.pokemon;
-
-                        this.buildGenerationSelectionList();
-
-                        this.buildList();
-                        return;
-                    }
-
-                    return Promise.reject(response.data);
-                })
-                .catch(error => {
-                    console.log('Failed to fetch pokemon...', error);
-                });
+            this.loadLanguageResource();
 
             const sortable = new Sortable(document.querySelector('ul#selectedItems'), {
                 draggable: 'li'
@@ -76,6 +60,59 @@ window.pokemonData = function() {
         },
         buildGenerationSelectionList() {
             this.availableGenerations = [...new Set(this.pokemon.map(item => item.gen))];
+        },
+        loadLanguageResource(updateSelected = false) {
+            fetch('resources/translations_' + this.selectedLanguage + '.json')
+                .then(response => response.json())
+                .then(data => {
+                    if(data) {
+                        this.translations = data;
+                        return;
+                    }
+
+                    return Promise.reject(response.data);
+                })
+                .catch(error => {
+                    console.log('Failed to fetch translations...', error);
+                });
+
+            fetch('resources/' + this.selectedLanguage + '.json')
+                .then(response => response.json())
+                .then(data => {
+                    if(data) {
+                        this.pokemon = data;
+                        this.filteredGeneration = this.pokemon;
+
+                        if(updateSelected) {
+                            this.updateSelectedPokemon();
+                        }
+
+                        this.buildGenerationSelectionList();
+
+                        this.buildList();
+                        return;
+                    }
+
+                    return Promise.reject(response.data);
+                })
+                .catch(error => {
+                    console.log('Failed to fetch pokemon...', error);
+                });
+        },
+        changeLanguage(lang) {
+            if (this.availableLanguages.indexOf(lang) > -1) {
+                this.selectedLanguage = lang;
+
+                this.loadLanguageResource(true);
+            }
+        },
+        updateSelectedPokemon() {
+            document.querySelector('ul#selectedItems').querySelectorAll('li').forEach(item => item.remove());
+
+            this.importIds = this.selectedPokemon.map(pk => {
+                return pk.id;
+            }).join("\n");
+            this.importPokemon();
         },
         renderItem(item) {
             // Item element.
@@ -134,7 +171,7 @@ window.pokemonData = function() {
             // Item add.
             const addButton = document.createElement('span');
             addButton.setAttribute('class', 'inline-block text-green-800 font-bold text-sm');
-            addButton.textContent = `Add ${item.name}`;
+            addButton.textContent = this.translations.add.replace('%s', item.name);
             add.appendChild(addButton);
 
             root.appendChild(add);
@@ -204,7 +241,7 @@ window.pokemonData = function() {
             const deleteButton = document.createElement('button');
             deleteButton.setAttribute('class', 'hidden group-hover:block absolute rounded-full bg-red-500 hover:bg-red-700 text-xs text-white px-8 py-1 right-0 mr-2 z-20');
             deleteButton.setAttribute('data-id', item.id);
-            deleteButton.textContent = `Delete`;
+            deleteButton.textContent = this.translations.delete;
             deleteButton.addEventListener('click', e => {
                 deleteButton.closest('li').remove();
                 this.selectedPokemon = this.selectedPokemon.filter(pk => {
@@ -226,16 +263,18 @@ window.pokemonData = function() {
         importPokemon() {
             let selectedItems = [];
 
-            this.importIds.split("\n").forEach(id => {
-                const item = this.pokemon.find(pk => parseInt(pk.id) === parseInt(id));
+            this.importIds.trim().split("\n").forEach(id => {
+                if(this.isNumeric(id)) {
+                    const item = this.pokemon.find(pk => parseInt(pk.id) === parseInt(id));
 
-                selectedItems.push({
-                    id: item.id,
-                    name: item.name,
-                    gen: item.gen
-                });
+                    selectedItems.push({
+                        id: item.id,
+                        name: item.name,
+                        gen: item.gen
+                    });
 
-                this.appendItemToList(item);
+                    this.appendItemToList(item);
+                }
             });
 
             this.selectedPokemon = selectedItems;
@@ -245,7 +284,7 @@ window.pokemonData = function() {
         },
         exportPokemon() {
             if (this.selectedPokemon.length <= 0) {
-                alert('Please select some pokemon first.');
+                alert(this.translations.select_pokemon_first);
                 return;
             }
 
@@ -258,7 +297,12 @@ window.pokemonData = function() {
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            alert('Copied to your clipboard.');
+            alert(this.translations.copied);
+        },
+        isNumeric(str) {
+            if (typeof str != "string") return false // we only process strings!
+            return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+                !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
         }
     };
 }
