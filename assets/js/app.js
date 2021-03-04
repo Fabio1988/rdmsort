@@ -244,6 +244,11 @@ window.pokemonData = function() {
             this.importIds = '';
         },
         exportPokemon() {
+            if (this.selectedPokemon.length <= 0) {
+                alert('Please select some pokemon first.');
+                return;
+            }
+
             const el = document.createElement('textarea');
             //el.setAttribute('class', 'hidden');
             el.value = this.selectedPokemon.map(item => {
