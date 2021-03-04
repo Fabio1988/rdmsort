@@ -1,6 +1,6 @@
 module.exports = {
   purge: [
-      './public/*.html',
+      './docs/*.html',
       './assets/**/*.js',
       './assets/**/*.css',
   ],
