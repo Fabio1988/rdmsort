@@ -85,7 +85,7 @@ window.pokemonData = function() {
             if(this.showImages) {
                 // Item image.
                 const img = document.createElement('img');
-                img.setAttribute('src', `/img/${item.id}.png`);
+                img.setAttribute('src', `img/${item.id}.png`);
                 img.setAttribute('alt', item.name);
                 img.setAttribute('class', 'h-16 w-16 object-fit')
                 root.appendChild(img);
@@ -187,7 +187,7 @@ window.pokemonData = function() {
             listItem.setAttribute('data-id', item.id);
 
             const img = document.createElement('img');
-            img.setAttribute('src', `/img/${item.id}.png`);
+            img.setAttribute('src', `img/${item.id}.png`);
             img.setAttribute('alt', item.name);
             img.setAttribute('class', 'h-16 w-16 object-fit mr-6')
             listItem.appendChild(img);
