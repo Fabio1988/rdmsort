@@ -263,7 +263,7 @@ window.pokemonData = function() {
         importPokemon() {
             let selectedItems = [];
 
-            this.importIds.trim().split("\n").forEach(id => {
+            this.importIds.trim().replace(/ /g, '').replace(/,/g, '').split("\n").forEach(id => {
                 if(this.isNumeric(id)) {
                     const item = this.pokemon.find(pk => parseInt(pk.id) === parseInt(id));
 
