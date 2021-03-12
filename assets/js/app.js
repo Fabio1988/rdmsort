@@ -37,11 +37,16 @@ window.pokemonData = function() {
                     let sortedList = [];
                     const listElements = document.querySelector('ul#selectedItems').querySelectorAll('li');
 
+                    let idx = 0;
+
                     listElements.forEach(element => {
+                        const autoIncSpan = element.querySelector('span.autoinc');
                         const id = parseInt(element.getAttribute('data-id'));
                         const foundElement = this.pokemon.filter(pokemon => {
                             return parseInt(pokemon.id) === id;
                         });
+
+                        autoIncSpan.textContent = idx + 1;
 
                         if(foundElement.length > 0) {
                             const item = foundElement[0];
@@ -52,6 +57,8 @@ window.pokemonData = function() {
                                 gen: item.gen
                             });
                         }
+
+                        idx += 1;
                     });
 
                     this.selectedPokemon = sortedList;
@@ -223,10 +230,15 @@ window.pokemonData = function() {
             listItem.setAttribute('class', 'relative flex flex-row justify-start items-center min-w-64 group cursor-move');
             listItem.setAttribute('data-id', item.id);
 
+            const incr = document.createElement('span');
+            incr.setAttribute('class', 'autoinc text-green-600');
+            incr.textContent = document.querySelector('ul#selectedItems').querySelectorAll('li').length + 1;
+            listItem.appendChild(incr);
+
             const img = document.createElement('img');
             img.setAttribute('src', `img/${item.id}.png`);
             img.setAttribute('alt', item.name);
-            img.setAttribute('class', 'h-16 w-16 object-fit mr-6')
+            img.setAttribute('class', 'h-16 w-16 object-fit mx-6')
             listItem.appendChild(img);
 
             const itemName = document.createElement('span');
@@ -247,6 +259,17 @@ window.pokemonData = function() {
                 this.selectedPokemon = this.selectedPokemon.filter(pk => {
                     return parseInt(pk.id) !== parseInt(deleteButton.getAttribute('data-id'));
                 });
+                const listElements = document.querySelector('ul#selectedItems').querySelectorAll('li');
+
+                let idx = 0;
+
+                listElements.forEach(element => {
+                    const autoIncSpan = element.querySelector('span.autoinc');
+
+                    autoIncSpan.textContent = idx + 1;
+
+                    idx += 1;
+                });
             });
 
             listItem.appendChild(itemName);
@@ -263,7 +286,7 @@ window.pokemonData = function() {
         importPokemon() {
             let selectedItems = [];
 
-            this.importIds.trim().split("\n").forEach(id => {
+            this.importIds.trim().replace(/ /g, '').replace(/,/g, '').split("\n").forEach(id => {
                 if(this.isNumeric(id)) {
                     const item = this.pokemon.find(pk => parseInt(pk.id) === parseInt(id));
 
