@@ -20,7 +20,7 @@
   "devDependencies": {
     "alpinejs": "^2.8.1",
     "cross-env": "^7.0.3",
-    "laravel-mix": "^6.0.13",
+    "laravel-mix": "^6.0.19",
     "postcss": "^8.2",
     "postcss-preset-env": "^6.7.0",
     "virtual-scroller": "^1.7.5"
